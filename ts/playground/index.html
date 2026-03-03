@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible+Mono:ital,wght@0,200..800;1,200..800&family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/src/style.css">
+    <script type="module" src="/src/main.ts"></script>
+    <title>playground</title>
+  </head>
+  <body>
+    <header>
+      <h1>Vine Playground</h1>
+      <div>
+        <input type="checkbox" id="breadthFirst">
+          <label for="breadthFirst">Breadth First</label>
+        </input>
+        <button id="action"></button>
+      </div>
+    </header>
+    <main>
+      <div id="editor"></div>
+      <div id="console">
+        <div>
+          <h3>Compiler Diagnostics</h3>
+          <div id="diagnostics"></div>
+        </div>
+        <div>
+          <h3>Runtime Statistics</h3>
+          <pre><code id="statistics"></code></pre>
+        </div>
+        <div>
+          <h3>Standard Output</h3>
+          <pre><code id="output"></code></pre>
+        </div>
+      </div>
+    </main>
+  </body>
+</html>

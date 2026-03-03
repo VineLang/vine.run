@@ -1,0 +1,86 @@
+* {
+  font-family: "Atkinson Hyperlegible Mono", sans-serif;
+  box-sizing: border-box;
+}
+
+body {
+  height: 100vh;
+
+  margin: 0;
+  padding: 1rem;
+
+  display: flex;
+  flex-direction: column;
+}
+
+header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+main {
+  flex-grow: 1;
+  min-height: 0;
+
+  display: grid;
+  grid-template-rows: 1fr 1fr;
+  grid-template-columns: none;
+  gap: 1rem;
+}
+
+main > * {
+  outline: 1px solid black;
+  overflow: scroll;
+}
+
+@media (min-width: 900px) {
+  main {
+    grid-template-rows: none;
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+#console {
+  padding: 0 1rem 0 1rem;
+}
+
+#console h3 {
+  border-bottom: 1px solid black;
+}
+
+#diagnostics > p {
+  margin: 0;
+}
+
+#statistics {
+  font-size: 16px;
+}
+
+#output {
+  font-size: 16px;
+}
+
+#diagnostics .red {
+  color: #D32F2F;
+}
+
+#diagnostics .yellow {
+  color: #F9A825;
+}
+
+#diagnostics .green {
+  color: #2E7D32;
+}
+
+#diagnostics .grey {
+  color: #616161;
+}
+
+#diagnostics .underline {
+  text-decoration: underline;
+}
+
+#diagnostics .bold {
+  font-weight: bold;
+}
