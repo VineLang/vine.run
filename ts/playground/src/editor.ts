@@ -1,6 +1,6 @@
 import { EditorState } from "@codemirror/state";
-import { type ViewUpdate, lineNumbers } from "@codemirror/view";
-import { EditorView } from "codemirror";
+import { type ViewUpdate } from "@codemirror/view";
+import { basicSetup, EditorView } from "codemirror";
 import { Tree } from "web-tree-sitter";
 import { Syntax, syntaxExtension } from "./syntax.ts";
 
@@ -10,17 +10,9 @@ export class Editor {
   tree: Tree | null;
 
   constructor(parent: HTMLDivElement) {
-    const theme =  EditorView.theme({
-      ".cm-gutters": {
-        color: "var(--dawn-white)",
-        backgroundColor: "var(--dusk-grey)",
-      }
-    });
-
     const state = EditorState.create({
       extensions: [
-        theme,
-        lineNumbers(),
+        basicSetup,
         syntaxExtension,
         EditorView.updateListener.of(async (update: ViewUpdate) => await this.onUpdate(update)),
       ],
@@ -50,10 +42,7 @@ export class Editor {
     }
 
     const { effects, tree } = this.syntax!.effects(
-      update.startState,
-      update.state,
-      update.changes,
-      this.tree,
+      update.state.doc.toString(),
     );
     this.tree = tree;
     update.view.dispatch({ effects });

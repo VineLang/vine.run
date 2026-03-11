@@ -1,13 +1,6 @@
-import {
-  ChangeSet,
-  EditorState,
-  RangeSetBuilder,
-  StateEffect,
-  StateField,
-  type Transaction,
-} from "@codemirror/state";
+import { RangeSetBuilder, StateEffect, StateField, type Transaction } from "@codemirror/state";
 import { Decoration, type DecorationSet, EditorView } from "@codemirror/view";
-import { Edit, Language, Parser, Query, Tree } from "web-tree-sitter";
+import { Language, Parser, Query, Tree } from "web-tree-sitter";
 import highlightsScm from "../tree-sitter-vine/queries/highlights.scm?raw";
 
 export type Effects = { effects: StateEffect<DecorationSet>[]; tree: Tree };
@@ -32,41 +25,13 @@ export class Syntax {
     return new Syntax(parser, highlights);
   }
 
-  effects(
-    oldState: EditorState,
-    newState: EditorState,
-    changes: ChangeSet,
-    tree: Tree | null,
-  ): Effects {
-    const position = (state: EditorState, pos: number) => {
-      const line = state.doc.lineAt(pos);
-      return {
-        row: line.number - 1,
-        column: pos - line.from,
-      };
-    };
-    const text = newState.doc.toString();
-    if (tree === null) {
-      tree = this.parser.parse(text);
-    } else {
-      changes.iterChanges((fromA, toA, _fromB, toB, _inserted) => {
-        const edit = new Edit({
-          startIndex: fromA,
-          oldEndIndex: toA,
-          newEndIndex: toB,
-          startPosition: position(oldState, fromA),
-          oldEndPosition: position(oldState, toA),
-          newEndPosition: position(newState, toB),
-        });
-        tree!.edit(edit);
-      });
-      tree = this.parser.parse(text, tree)!;
-    }
+  effects(text: string): Effects {
+    const tree = this.parser.parse(text)!;
     const builder: RangeSetBuilder<Decoration> = new RangeSetBuilder();
     for (const { name, node } of this.highlights.captures(tree!.rootNode)) {
       builder.add(node.startIndex, node.endIndex, nodeDecoration(name));
     }
-    return { effects: [nodeEffect.of(builder.finish())], tree: tree! };
+    return { effects: [nodeEffect.of(builder.finish())], tree };
   }
 }
 
@@ -80,11 +45,14 @@ const nodeField = StateField.define<DecorationSet>({
   },
 
   update(decorations: DecorationSet, transaction: Transaction) {
-    decorations = decorations.map(transaction.changes);
     for (const effect of transaction.effects) {
       if (effect.is(nodeEffect)) {
         decorations = effect.value;
       }
+    }
+
+    if (decorations && transaction.docChanged) {
+      decorations = decorations.map(transaction.changes);
     }
     return decorations;
   },
