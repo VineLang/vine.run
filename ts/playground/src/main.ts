@@ -35,6 +35,8 @@ class Playground {
   }
 
   async initialize() {
+    await this.editor.initialize();
+
     this.breadthFirst.disabled = true;
     this.setButton(this.runButton, false);
 

@@ -1,0 +1,27 @@
+.ts {color:#bdc3c7}
+.ts {background-color:#1d2028}
+.ts-string {color:#6ebf9c}
+.ts-comment {color:#6d7278}
+.ts-keyword {color:#67c687}
+.ts-operator {color:#67c687}
+.ts-constant {color:#92cca5}
+.ts-variable .ts--builtin {color:#92cca5}
+.ts-type {color:#92cca5}
+.ts-function {color:#92cca5}
+.ts-punctuation {color:#93989d}
+.ts-namespace {color:#93989d}
+@media (prefers-color-scheme: light) {
+.ts {color:#252830}
+.ts {background-color:#cad0d4}
+.ts-string {color:#247153}
+.ts-comment {color:#777c82}
+.ts-keyword {color:#247f44}
+.ts-operator {color:#247f44}
+.ts-constant {color:#407251}
+.ts-variable .ts--builtin {color:#407251}
+.ts-type {color:#407251}
+.ts-function {color:#407251}
+.ts-punctuation {color:#51555c}
+.ts-namespace {color:#51555c}
+
+}

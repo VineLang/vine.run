@@ -270,11 +270,11 @@
         "typsitter": "typsitter"
       },
       "locked": {
-        "lastModified": 1773082267,
-        "narHash": "sha256-xzCOqje1u6b6Ro2dLjoVE2WMmU48bMyvP4p3qA/deBk=",
+        "lastModified": 1773135784,
+        "narHash": "sha256-Nfv1URdonkxCrke79AmPoBsjv2G5Mqh8eYBCqyHb9PI=",
         "owner": "VineLang",
         "repo": "vine",
-        "rev": "97095e01a8877ca5737ab8eaa2f16573b51a9291",
+        "rev": "c88ab1f76f1681c819558ed90f6a871cae26a6af",
         "type": "github"
       },
       "original": {

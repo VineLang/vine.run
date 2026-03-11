@@ -1,10 +1,36 @@
-* {
-  font-family: "Atkinson Hyperlegible Mono", sans-serif;
+@import "theme.css";
+@import "typsitter.css";
+
+*, *::before, *::after {
   box-sizing: border-box;
+  font-family: "Atkinson Hyperlegible Mono", sans-serif;
+}
+
+:root {
+  color-scheme: dark;
+
+  --dusk-black: color-mix(in srgb, var(--dusk), var(--black));
+  --dawn-white: color-mix(in srgb, var(--dawn), var(--white));
+
+  --dawn-grey: color-mix(in srgb, var(--dawn), var(--black) 25%);
+  --dusk-grey: color-mix(in srgb, var(--dusk), var(--white) 25%);
+
+  --fg: light-dark(var(--dusk), var(--dawn));
+  --fg-grey: light-dark(var(--dusk-grey), var(--dawn-grey));
+  --bg: light-dark(var(--white), var(--black));
+  --bg-grey: light-dark(var(--dawn-white), var(--dusk-black));
+}
+
+@media(prefers-color-scheme: light) {
+  :root {
+    color-scheme: light;
+  }
 }
 
 body {
   height: 100vh;
+
+  background-color: var(--bg);
 
   margin: 0;
   padding: 1rem;
@@ -30,7 +56,7 @@ main {
 }
 
 main > * {
-  outline: 1px solid black;
+  border-radius: .25rem;
   overflow: scroll;
 }
 
@@ -46,7 +72,7 @@ main > * {
 }
 
 #console h3 {
-  border-bottom: 1px solid black;
+  border-bottom: 1px solid var(--fg-grey);
 }
 
 #diagnostics > p {

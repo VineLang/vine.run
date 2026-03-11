@@ -1,4 +1,4 @@
-import { init_console_log_tracing, PlaygroundCompiler } from "../../../../rust/playground/pkg";
+import { init_console_log_tracing, PlaygroundCompiler } from "../../playground-rs-pkg";
 import { defineWorker } from "./lib.ts";
 
 export type API = {

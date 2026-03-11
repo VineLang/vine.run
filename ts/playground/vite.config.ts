@@ -8,4 +8,5 @@ export default defineConfig({
     plugins: () => [topLevelAwait(), wasm()],
     format: "es",
   },
+  optimizeDeps: { exclude: ["web-tree-sitter"] },
 });
