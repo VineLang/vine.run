@@ -1,6 +1,5 @@
 import { EditorState } from "@codemirror/state";
-import { type ViewUpdate } from "@codemirror/view";
-import { basicSetup, EditorView } from "codemirror";
+import { EditorView, lineNumbers, type ViewUpdate } from "@codemirror/view";
 import { Tree } from "web-tree-sitter";
 import { Syntax, syntaxExtension } from "./syntax.ts";
 
@@ -11,8 +10,9 @@ export class Editor {
 
   constructor(parent: HTMLDivElement) {
     const state = EditorState.create({
+      // extract from: https://github.com/codemirror/basic-setup/blob/main/src/codemirror.ts
       extensions: [
-        basicSetup,
+        lineNumbers(),
         syntaxExtension,
         EditorView.updateListener.of(async (update: ViewUpdate) => await this.onUpdate(update)),
       ],

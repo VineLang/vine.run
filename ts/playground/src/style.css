@@ -21,6 +21,10 @@
   --bg-grey: light-dark(var(--dawn-white), var(--dusk-black));
 }
 
+::selection {
+  background-color: color-mix(in srgb, var(--fg) 20%, transparent);
+}
+
 @media(prefers-color-scheme: light) {
   :root {
     color-scheme: light;
@@ -30,10 +34,11 @@
 body {
   height: 100vh;
 
+  color: var(--white);
   background-color: var(--bg);
 
   margin: 0;
-  padding: 1rem;
+  padding: 0 1rem 1rem 1rem;
 
   display: flex;
   flex-direction: column;
@@ -57,6 +62,7 @@ main {
 
 main > * {
   border-radius: .25rem;
+  background-color: var(--dusk-black);
   overflow: scroll;
 }
 
@@ -65,6 +71,28 @@ main > * {
     grid-template-rows: none;
     grid-template-columns: 1fr 1fr;
   }
+}
+
+#editor .cm-editor {
+  height: 100%;
+}
+
+#editor .cm-content {
+  caret-color: var(--fg);
+}
+
+#editor .cm-editor .cm-focused .cm-selectionBackground, ::selection {
+  background-color: color-mix(in srgb, var(--fg) 20%, transparent);
+}
+
+#editor .cm-lineNumbers .cm-gutterElement {
+  padding: 0 5px 0 5px;
+}
+
+#editor .cm-gutters {
+  background-color: var(--dusk);
+  color: var(--white);
+  border: none;
 }
 
 #console {
@@ -88,22 +116,21 @@ main > * {
 }
 
 #diagnostics .red {
-  color: #D32F2F;
+  --diagnostic-bg: #563336;
+  color: #da7975;
 }
 
 #diagnostics .yellow {
-  color: #F9A825;
-}
-
-#diagnostics .green {
-  color: #2E7D32;
+  --diagnostic-bg: #5c4b1d;
+  color: #e9ba00;
 }
 
 #diagnostics .grey {
-  color: #616161;
+  color: var(--fg-grey);
 }
 
 #diagnostics .underline {
+  background-color: var(--diagnostic-bg);
   text-decoration: underline;
 }
 

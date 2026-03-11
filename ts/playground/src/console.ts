@@ -39,7 +39,7 @@ export class Console {
           const content = diag_span.content.replace(" ", "&nbsp;");
           return `<span class="${classes.join(" ")}">${content}</span>`;
         }).join("");
-        return `<p>${spans}</p>`;
+        return `<p>${spans || "&nbsp;"}</p>`;
       }).join("\n");
     }
   }
