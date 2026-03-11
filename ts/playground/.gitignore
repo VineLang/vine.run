@@ -11,5 +11,4 @@ dist
 dist-ssr
 *.local
 
-public/
-tree-sitter-vine/
+tree-sitter-vine

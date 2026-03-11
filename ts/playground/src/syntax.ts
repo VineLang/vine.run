@@ -1,6 +1,8 @@
 import { RangeSetBuilder, StateEffect, StateField, type Transaction } from "@codemirror/state";
 import { Decoration, type DecorationSet, EditorView } from "@codemirror/view";
 import { Language, Parser, Query, Tree } from "web-tree-sitter";
+import treeSitterWasm from "web-tree-sitter/web-tree-sitter.wasm?url";
+import treeSitterVineWasm from "../tree-sitter-vine/tree-sitter-vine.wasm?url";
 import highlightsScm from "../tree-sitter-vine/queries/highlights.scm?raw";
 
 export type Effects = { effects: StateEffect<DecorationSet>[]; tree: Tree };
@@ -15,9 +17,11 @@ export class Syntax {
   }
 
   static async init(): Promise<Syntax> {
-    await Parser.init();
+    await Parser.init({
+      locateFile: () => treeSitterWasm,
+    });
 
-    const language = await Language.load("tree-sitter-vine/tree-sitter-vine.wasm");
+    const language = await Language.load(treeSitterVineWasm);
     const parser = new Parser();
     parser.setLanguage(language);
     const highlights = new Query(language, highlightsScm);
