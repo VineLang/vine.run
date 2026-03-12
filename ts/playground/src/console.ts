@@ -1,58 +1,91 @@
 import { type Diag } from "./workers/compiler.ts";
 
-export type ConsoleHTMLElements = {
-  diagnostics: HTMLDivElement;
-  statistics: HTMLElement;
-  output: HTMLElement;
-};
+export type ConsoleElements = Pick<Console, "console" | "diagnostics" | "statistics" | "output">;
 
 export class Console {
-  elements: ConsoleHTMLElements;
+  console: HTMLElement;
+  diagnostics: HTMLElement;
+  statistics: HTMLElement;
+  output: HTMLElement;
 
-  constructor(elements: ConsoleHTMLElements) {
-    this.elements = elements;
-  }
+  constructor(elements: ConsoleElements) {
+    this.console = elements.console;
+    this.diagnostics = elements.diagnostics;
+    this.statistics = elements.statistics;
+    this.output = elements.output;
 
-  showLoading(message: string) {
-    this.elements.diagnostics.innerHTML = `<p>${message}</p>`;
-  }
-
-  clear() {
-    this.elements.diagnostics.innerHTML = "";
-    this.elements.statistics.innerHTML = "";
-    this.elements.output.innerHTML = "";
-  }
-
-  showDiagnostics(diag_lines: Diag[][]) {
-    if (diag_lines.length == 0) {
-      this.elements.diagnostics.innerHTML = "<p>No errors or warnings!</p>";
-    } else {
-      this.elements.diagnostics.innerHTML = diag_lines.map((diag_spans) => {
-        const spans = diag_spans.map(diag_span => {
-          const classes = [diag_span.color];
-          if (diag_span.underline) {
-            classes.push("underline");
-          }
-          if (diag_span.bold) {
-            classes.push("bold");
-          }
-          const content = diag_span.content.replace(" ", "&nbsp;");
-          return `<span class="${classes.join(" ")}">${content}</span>`;
-        }).join("");
-        return `<p>${spans || "&nbsp;"}</p>`;
-      }).join("\n");
+    for (const container of this.console.querySelectorAll(".container")) {
+      container.querySelector("h3")!.addEventListener("click", () => {
+        this.update(() => {
+          container.classList.toggle("hide")
+        })
+      })
     }
   }
 
+  showLoading(message: string) {
+    this.diagnostics.textContent = `${message}`;
+  }
+
+  clear() {
+    this.diagnostics.textContent = "";
+    this.statistics.textContent = "";
+    this.output.textContent = "";
+  }
+
+  showDiagnostics(diag_lines: Diag[][]) {
+    this.update(() => {
+      if (diag_lines.length == 0) {
+        this.diagnostics.textContent = "";
+      } else {
+        this.diagnostics.textContent = "";
+        for (const diag_spans of diag_lines) {
+          for (const diag_span of diag_spans) {
+            const span = document.createElement("span");
+            if(diag_span.color != null) {
+              span.classList.add(diag_span.color);
+            }
+            if (diag_span.underline) {
+              span.classList.add("underline");
+            }
+            if (diag_span.bold) {
+              span.classList.add("bold");
+            }
+            span.textContent = diag_span.content;
+            this.diagnostics.appendChild(span);
+          }
+          this.diagnostics.appendChild(document.createElement("br"));
+        }
+        while(this.diagnostics.lastChild?.nodeName === "BR") {
+          this.diagnostics.removeChild(this.diagnostics.lastChild);
+        }
+      }
+    });
+  }
+
   showStatistics(stats: string) {
-    this.elements.statistics.innerHTML = stats.trim();
+    this.update(() => {
+      this.statistics.textContent = stats.trim();
+    });
   }
 
   showTerminated() {
-    this.elements.statistics.innerHTML += "\n\n(terminated)";
+    this.update(() => {
+      this.statistics.textContent += "\n\n(terminated)";
+    });
   }
 
   appendOutput(output: string) {
-    this.elements.output.innerHTML += output;
+    this.update(() => {
+      this.output.textContent += output;
+    });
+  }
+
+  update(cb: () => void) {
+    const atBottom = this.console.scrollTop + this.console.clientHeight >= this.console.scrollHeight;
+    cb();
+    if(atBottom) {
+      this.console.scrollTo(0, this.console.scrollHeight)
+    }
   }
 }

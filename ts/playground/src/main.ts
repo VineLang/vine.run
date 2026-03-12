@@ -15,16 +15,17 @@ class Playground {
   runtime?: WebWorker<Runtime>;
 
   constructor() {
-    this.runButton = this.createActionButton("Run (ctrl+enter)", () => this.run());
-    this.stopButton = this.createActionButton("Stop (ctrl+x)", () => this.stop());
+    this.runButton = this.createActionButton("Run", "Ctrl+Enter", () => this.run());
+    this.stopButton = this.createActionButton("Stop", "Ctrl+X", () => this.stop());
     this.breadthFirst = document.querySelector<HTMLInputElement>("#breadthFirst")!;
 
-    this.editor = new Editor(document.querySelector<HTMLDivElement>("#editor")!);
+    this.editor = new Editor(document.querySelector("#editor")!);
 
     this.console = new Console({
-      diagnostics: document.querySelector<HTMLDivElement>("#diagnostics")!,
-      statistics: document.querySelector<HTMLElement>("#statistics")!,
-      output: document.querySelector<HTMLElement>("#output")!,
+      console: document.querySelector("#console")!,
+      diagnostics: document.querySelector("#diagnostics")!,
+      statistics: document.querySelector("#statistics")!,
+      output: document.querySelector("#output")!,
     });
 
     this.compiler = consumeWorker(
@@ -48,11 +49,12 @@ class Playground {
     this.setButton(this.runButton, true);
 
     document.addEventListener("keydown", (event) => {
-      if (event.ctrlKey && event.key == "Enter") {
+      const ctrl = event.ctrlKey || event.metaKey;
+      if (ctrl && event.key == "Enter") {
         event.preventDefault();
         this.runButton.click();
       }
-      if (event.ctrlKey && event.key == "x") {
+      if (ctrl && event.key == "x") {
         event.preventDefault();
         this.stopButton.click();
       }
@@ -108,14 +110,14 @@ class Playground {
 
   setButton(button: HTMLButtonElement, enabled: boolean) {
     button.disabled = !enabled;
-    document.querySelector<HTMLButtonElement>("#action")!.replaceWith(button);
+    document.getElementById("action")!.replaceWith(button);
   }
 
-  createActionButton(innerHTML: string, onclick: () => void): HTMLButtonElement {
+  createActionButton(label: string, tooltip: string, onclick: () => void): HTMLButtonElement {
     const button = document.createElement("button");
     button.id = "action";
-    button.innerHTML = innerHTML;
-    button.disabled = true;
+    button.innerText = label;
+    button.title = tooltip;
     button.addEventListener("click", onclick);
     return button;
   }

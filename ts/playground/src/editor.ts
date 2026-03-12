@@ -1,10 +1,11 @@
 import { EditorState } from "@codemirror/state";
-import { EditorView, lineNumbers, type ViewUpdate } from "@codemirror/view";
+import { EditorView, lineNumbers, type ViewUpdate, keymap } from "@codemirror/view";
 import { type Transport, LSPClient, languageServerExtensions } from "@codemirror/lsp-client";
 import { Tree } from "web-tree-sitter";
 import { Syntax, syntaxExtension } from "./syntax.ts";
 import { consumeWorker } from "./workers/lib.ts";
 import { type API as Lsp } from "./workers/lsp.ts";
+import {defaultKeymap, history, historyKeymap} from "@codemirror/commands"
 
 function lspClient(): LSPClient {
   type Handler = (msg: string) => void;
@@ -41,10 +42,15 @@ export class Editor {
   syntax?: Syntax;
   tree: Tree | null;
 
-  constructor(parent: HTMLDivElement) {
+  constructor(parent: HTMLElement) {
     const state = EditorState.create({
       // extract from: https://github.com/codemirror/basic-setup/blob/main/src/codemirror.ts
       extensions: [
+        history(),
+        keymap.of([
+          ...defaultKeymap,
+          ...historyKeymap,
+        ]),
         lineNumbers(),
         lspClient().plugin('file:///main/main.vi'),
         syntaxExtension,
