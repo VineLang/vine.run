@@ -1,7 +1,40 @@
 import { EditorState } from "@codemirror/state";
 import { EditorView, lineNumbers, type ViewUpdate } from "@codemirror/view";
+import { type Transport, LSPClient, languageServerExtensions } from "@codemirror/lsp-client";
 import { Tree } from "web-tree-sitter";
 import { Syntax, syntaxExtension } from "./syntax.ts";
+import { consumeWorker } from "./workers/lib.ts";
+import { type API as Lsp } from "./workers/lsp.ts";
+
+function lspClient(): LSPClient {
+  type Handler = (msg: string) => void;
+
+  let handlers: Handler[] = [];
+  const lsp = consumeWorker<Lsp>(
+    new Worker(new URL("./workers/lsp.ts", import.meta.url), {
+      type: "module",
+    }),
+  );
+  lsp.worker.addEventListener("message", ({ data: [tag, msg] }) => {
+    if (tag === "lsp") {
+      for (const handler of handlers) {
+        handler(msg);
+      }
+    }
+  });
+  const transport: Transport = {
+    send(message: string) {
+      lsp.send(message);
+    },
+    subscribe(handler: Handler) {
+      handlers.push(handler);
+    },
+    unsubscribe(handler: Handler) {
+      handlers = handlers.filter(h => h != handler)
+    },
+  };
+  return new LSPClient({ extensions: languageServerExtensions()}).connect(transport);
+}
 
 export class Editor {
   view: EditorView;
@@ -13,6 +46,7 @@ export class Editor {
       // extract from: https://github.com/codemirror/basic-setup/blob/main/src/codemirror.ts
       extensions: [
         lineNumbers(),
+        lspClient().plugin('file:///main/main.vi'),
         syntaxExtension,
         EditorView.updateListener.of(async (update: ViewUpdate) => await this.onUpdate(update)),
       ],

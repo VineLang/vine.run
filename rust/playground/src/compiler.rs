@@ -1,26 +1,27 @@
-use std::collections::HashMap;
+use std::{collections::HashMap, path::PathBuf};
 
 use ivy::{ast::Nets, optimize::Optimizer};
 use serde::Serialize;
 use vine::{
   compiler::Compiler,
-  components::loader::Loader,
+  components::loader::{FileId, Loader},
   structures::{
     ast::Ident,
     checkpoint::Checkpoint,
     diag::{Color, DiagSpan},
   },
 };
+use vine_util::idx::IdxVec;
 use wasm_bindgen::prelude::{JsValue, wasm_bindgen};
 
-use crate::fs::{PlaygroundFS, PlaygroundPath, VINE_ROOT_DIR};
+use crate::fs::{PlaygroundFS, VINE_ROOT_DIR};
 
 #[wasm_bindgen]
 #[derive(Default)]
 pub struct PlaygroundCompiler {
-  compiler: Compiler,
-  checkpoint: Checkpoint,
-  root_nets: Nets,
+  pub(crate) compiler: Compiler,
+  pub(crate) checkpoint: Checkpoint,
+  pub(crate) root_nets: Nets,
 }
 
 #[wasm_bindgen]
@@ -32,6 +33,7 @@ impl PlaygroundCompiler {
 
   #[wasm_bindgen(js_name = compileRoot)]
   pub fn compile_root(&mut self) -> bool {
+    let _ = self._load_root();
     self._compile_root()
   }
 
@@ -48,6 +50,15 @@ impl PlaygroundCompiler {
   }
 
   #[tracing::instrument(level = "trace", skip(self), ret)]
+  pub(crate) fn _load_root(&mut self) -> IdxVec<FileId, PathBuf> {
+    let mut file_paths = IdxVec::new();
+    let fs = PlaygroundFS::new(&VINE_ROOT_DIR, HashMap::default());
+    let mut loader = Loader::new(&mut self.compiler, fs, Some(&mut file_paths));
+    loader.load_mod(Ident("root".into()), PathBuf::from("/root"));
+    file_paths
+  }
+
+  #[tracing::instrument(level = "trace", skip(self), ret)]
   fn _compile_files(&mut self, files: JsValue) -> Option<String> {
     self.compiler.revert(&self.checkpoint);
 
@@ -56,7 +67,7 @@ impl PlaygroundCompiler {
     let fs = PlaygroundFS::new(&VINE_ROOT_DIR, files);
 
     let mut loader = Loader::new(&mut self.compiler, fs, None);
-    loader.load_main_mod(Ident("main".into()), PlaygroundPath::Local(Ident("main".into())));
+    loader.load_main_mod(Ident("main".into()), PathBuf::from("/main"));
 
     let mut nets = self.compiler.compile(()).ok()?;
     nets.extend(self.root_nets.clone().drain(..));
@@ -67,10 +78,6 @@ impl PlaygroundCompiler {
 
   #[tracing::instrument(level = "trace", skip(self), ret)]
   fn _compile_root(&mut self) -> bool {
-    let fs = PlaygroundFS::new(&VINE_ROOT_DIR, HashMap::default());
-    let mut loader = Loader::new(&mut self.compiler, fs, None);
-    loader.load_mod(Ident("root".into()), PlaygroundPath::Root(None));
-
     if let Ok(nets) = self.compiler.compile(()) {
       self.root_nets = nets;
       self.checkpoint = self.compiler.checkpoint();

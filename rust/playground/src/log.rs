@@ -3,6 +3,7 @@ use std::fmt::Debug;
 use tracing::{
   Event, Level, Subscriber,
   field::{Field, Visit},
+  span::{Attributes, Id},
 };
 use tracing_subscriber::{Layer, layer::Context, registry::LookupSpan};
 use web_sys::console::{debug_1, error_1, info_1, log_1, warn_1};
@@ -16,26 +17,37 @@ impl Visit for DebugVisitor {
   }
 }
 
+struct SpanFields(Vec<String>);
+
 impl<S> Layer<S> for ConsoleLayer
 where
   S: Subscriber + for<'a> LookupSpan<'a>,
 {
+  fn on_new_span(&self, attrs: &Attributes<'_>, id: &Id, ctx: Context<'_, S>) {
+    let span = ctx.span(id).unwrap();
+    let mut visitor = DebugVisitor(Vec::new());
+    attrs.record(&mut visitor);
+    span.extensions_mut().insert(SpanFields(visitor.0));
+  }
+
   fn on_event(&self, event: &Event<'_>, ctx: Context<'_, S>) {
     let scope = ctx.event_scope(event);
-    let span_path = scope
-      .map(|scope| {
-        scope
-          .from_root()
-          .map(|s| {
-            let meta = s.metadata();
-            format!("{}::{}", meta.target(), meta.name())
-          })
-          .collect::<Vec<_>>()
-          .join(" -> ")
-      })
-      .unwrap_or_default();
+    let mut parts = Vec::new();
+    if let Some(scope) = scope {
+      for span in scope.from_root() {
+        let meta = span.metadata();
+        let mut s = format!("{}::{}", meta.target(), meta.name());
+        if let Some(fields) = span.extensions().get::<SpanFields>()
+          && !fields.0.is_empty()
+        {
+          s.push(' ');
+          s.push_str(&fields.0.join(" "));
+        }
+        parts.push(s);
+      }
+    }
 
-    let mut debug = DebugVisitor(vec![span_path]);
+    let mut debug = DebugVisitor(parts);
     event.record(&mut debug);
     let msg = debug.0.join(" ");
 

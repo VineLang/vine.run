@@ -1,6 +1,7 @@
 mod compiler;
 mod fs;
 mod log;
+mod lsp;
 mod runtime;
 
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};

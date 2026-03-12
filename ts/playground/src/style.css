@@ -19,6 +19,12 @@
   --fg-grey: light-dark(var(--dusk-grey), var(--dawn-grey));
   --bg: light-dark(var(--white), var(--black));
   --bg-grey: light-dark(var(--dawn-white), var(--dusk-black));
+
+  --fg-error: #da7975;
+  --bg-error: #563336;
+
+  --fg-warning: #e9ba00;
+  --bg-warning: #5c4b1d;
 }
 
 ::selection {
@@ -89,6 +95,31 @@ main > * {
   padding: 0 5px 0 5px;
 }
 
+#editor .cm-tooltip {
+  border: 1px solid var(--dusk-grey);
+  border-radius: .25rem;
+  background-color: var(--dusk);
+  overflow: hidden;
+}
+
+#editor .cm-toolthip-lint:not(:first-child) {
+  border-top: 1px solid var(--diagnostic-border);
+}
+
+#editor .cm-diagnostic-error {
+  --diagnostic-border: var(--fg-error);
+  border-left: unset;
+  background: var(--bg-error);
+  color: var(--fg-error);
+}
+
+#editor .cm-diagnostic-warning {
+  --diagnostic-border: var(--fg-warning);
+  border-left: unset;
+  background: var(--bg-warning);
+  color: var(--fg-warning);
+}
+
 #editor .cm-gutters {
   background-color: var(--dusk);
   color: var(--white);
@@ -115,13 +146,31 @@ main > * {
   font-size: 16px;
 }
 
+#editor .cm-lintRange-error, .cm-lintRange-warning {
+  background-image: none;
+  text-decoration: underline;
+}
+
+#editor .cm-lintRange-error,  #editor .cm-lintRange-error > * {
+  background-color: var(--bg-error);
+  color: var(--fg-error) !important;
+  text-decoration-color: var(--fg-error);
+}
+
 #diagnostics .red {
-  --diagnostic-bg: #563336;
-  color: #da7975;
+  --diagnostic-bg: var(--bg-error);
+  color: var(--fg-error);
+}
+
+#editor .cm-lintRange-warning {
+  background-color: var(--bg-warning);
+  background-image: none;
+  text-decoration: underline;
+  color: var(--fg-warning) !important;
 }
 
 #diagnostics .yellow {
-  --diagnostic-bg: #5c4b1d;
+  --diagnostic-bg: var(--bg-warning);
   color: #e9ba00;
 }
 

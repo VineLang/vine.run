@@ -84,6 +84,7 @@
       in
       {
         devShells.default = craneLib.devShell {
+          VINE_ROOT_DIR = "${vine}/root";
           name = "vine-playground";
           packages = [
             setup

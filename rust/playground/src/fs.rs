@@ -1,4 +1,7 @@
-use std::{collections::HashMap, path::PathBuf};
+use std::{
+  collections::HashMap,
+  path::{Path, PathBuf},
+};
 
 use include_dir::{Dir, DirEntry, include_dir};
 use vine::{
@@ -8,65 +11,80 @@ use vine::{
 
 pub static VINE_ROOT_DIR: Dir<'_> = include_dir!("$VINE_ROOT_DIR");
 
+#[derive(Clone)]
 pub struct PlaygroundFS {
   root: &'static Dir<'static>,
-  local: HashMap<Ident, String>,
+  main: HashMap<Ident, String>,
 }
 
 impl PlaygroundFS {
-  pub fn new(root: &'static Dir<'static>, local: HashMap<Ident, String>) -> Self {
-    Self { root, local }
+  pub fn new(root: &'static Dir<'static>, main: HashMap<Ident, String>) -> Self {
+    Self { root, main }
   }
 }
 
 #[derive(Debug)]
-pub enum PlaygroundPath {
-  Root(Option<PathBuf>),
-  Local(Ident),
+enum PlaygroundPath<'a> {
+  Root(&'a Path),
+  Main(Option<Ident>),
+}
+
+impl<'a> PlaygroundPath<'a> {
+  fn parse(path: &'a Path) -> Option<Self> {
+    if let Ok(path) = path.strip_prefix("/root") {
+      return Some(Self::Root(path));
+    }
+    if let Ok(path) = path.strip_prefix("/main") {
+      return if path == "" {
+        Some(Self::Main(None))
+      } else {
+        Some(Self::Main(Some(Ident::new(path.with_extension("").to_str()?)?)))
+      };
+    }
+    None
+  }
 }
 
 impl FS for PlaygroundFS {
-  type Path = PlaygroundPath;
+  type Path = PathBuf;
 
-  #[tracing::instrument(level = "trace", skip(self), ret)]
+  #[tracing::instrument(level = "trace", skip(self), fields(?path), ret)]
   fn kind(&mut self, path: &Self::Path) -> Option<EntryKind> {
-    match path {
-      PlaygroundPath::Root(None) => Some(EntryKind::Dir),
-      PlaygroundPath::Root(Some(path)) => match self.root.get_entry(path)? {
+    match PlaygroundPath::parse(path)? {
+      PlaygroundPath::Root(path) if path == "" => Some(EntryKind::Dir),
+      PlaygroundPath::Root(path) => match self.root.get_entry(path)? {
         DirEntry::Dir(_) => Some(EntryKind::Dir),
         DirEntry::File(_) => Some(EntryKind::File),
       },
-      PlaygroundPath::Local(ident) if self.local.contains_key(ident) => Some(EntryKind::File),
+      PlaygroundPath::Main(None) => Some(EntryKind::Dir),
+      PlaygroundPath::Main(Some(ident)) if self.main.contains_key(&ident) => Some(EntryKind::File),
       _ => None,
     }
   }
 
-  #[tracing::instrument(level = "trace", skip(self), ret)]
+  #[tracing::instrument(level = "trace", skip(self), fields(?path, ?name), ret)]
   fn child_dir(&mut self, path: &Self::Path, name: &Ident) -> Self::Path {
-    match path {
-      PlaygroundPath::Root(None) => PlaygroundPath::Root(Some(name.0.clone().into())),
-      PlaygroundPath::Root(Some(path)) => PlaygroundPath::Root(Some(path.join(&name.0))),
-      PlaygroundPath::Local(_) => unreachable!(),
+    match PlaygroundPath::parse(path).unwrap() {
+      PlaygroundPath::Root(path) => PathBuf::from("/root").join(path).join(&name.0),
+      PlaygroundPath::Main(_) => unreachable!(),
     }
   }
 
-  #[tracing::instrument(level = "trace", skip(self), ret)]
+  #[tracing::instrument(level = "trace", skip(self), fields(?path, ?name), ret)]
   fn child_file(&mut self, path: &Self::Path, name: &Ident) -> Self::Path {
     let file_name = format!("{}.vi", name.0);
-    match path {
-      PlaygroundPath::Root(None) => PlaygroundPath::Root(Some(file_name.into())),
-      PlaygroundPath::Root(Some(path)) => PlaygroundPath::Root(Some(path.join(file_name))),
-      PlaygroundPath::Local(_) => unreachable!(),
+    match PlaygroundPath::parse(path).unwrap() {
+      PlaygroundPath::Root(path) => PathBuf::from("/root").join(path).join(&file_name),
+      PlaygroundPath::Main(None) => PathBuf::from("/main").join(&file_name),
+      PlaygroundPath::Main(Some(_)) => unreachable!(),
     }
   }
 
-  #[tracing::instrument(level = "trace", skip(self), ret)]
+  #[tracing::instrument(level = "trace", skip(self), fields(?path), ret)]
   fn read_file(&mut self, path: &Self::Path) -> Option<String> {
-    match path {
-      PlaygroundPath::Root(path) => {
-        Some(self.root.get_file(path.as_ref()?)?.contents_utf8()?.to_owned())
-      }
-      PlaygroundPath::Local(ident) => self.local.get(ident).cloned(),
+    match PlaygroundPath::parse(path)? {
+      PlaygroundPath::Root(path) => Some(self.root.get_file(path)?.contents_utf8()?.to_owned()),
+      PlaygroundPath::Main(ident) => self.main.get(&ident?).cloned(),
     }
   }
 }
