@@ -224,16 +224,31 @@ main {
   flex-direction: column;
   background-color: var(--bg);
   font-family: var(--mono);
+  position: relative;
+  scroll-padding-top: calc((var(--console-i) + 1) * 2.5rem);
 
   .container {
+    display: contents;
+    
     h3 {
       position: sticky;
-      top: 0;
-      padding: 0.5rem 1rem;
+      top: calc(var(--console-i) * 2.5rem);
+      bottom: calc((var(--console-n) - 1 - var(--console-i)) * 2.5rem);
+      margin-top: -1px;
+      min-height: calc(2.5rem + 1px);
+      max-height: calc(2.5rem + 1px);
       background-color: var(--bg);
+      display: flex;
+      align-items: center;
+      padding: 0 1rem;
+      border-top: 1px solid var(--grey);
       border-bottom: 1px solid var(--grey);
       cursor: pointer;
       user-select: none;
+    }
+
+    &.first h3 {
+      border-top-color: transparent;
     }
 
     pre {

@@ -7,7 +7,7 @@ export class Console {
   diagnostics: HTMLElement;
   output: HTMLElement;
   statistics: HTMLElement;
-  containers: Element[];
+  containers: HTMLElement[];
 
   constructor(elements: ConsoleElements) {
     this.console = elements.console;
@@ -15,13 +15,25 @@ export class Console {
     this.output = elements.output;
     this.statistics = elements.statistics;
 
-    this.containers = [...this.console.querySelectorAll(".container")];
+    this.containers = [...this.console.querySelectorAll<HTMLElement>(".container")];
 
     for (const container of this.containers) {
-      container.querySelector("h3")!.addEventListener("click", () => {
-        this.update(() => {
-          container.classList.toggle("hide");
-        });
+      const header = container.querySelector("h3")!;
+      const body = container.querySelector("pre")!;
+      header.addEventListener("click", () => {
+        const hidden = container.classList.contains("hide");
+        if (hidden) {
+          this.update(() => container.classList.remove("hide"));
+        }
+
+        const i = container.style.getPropertyValue("--console-i");
+        this.console.style.setProperty("--console-i", i);
+        const prevTop = this.console.scrollTop;
+        body.scrollIntoView();
+
+        if (!hidden && this.console.scrollTop == prevTop) {
+          this.update(() => container.classList.add("hide"));
+        }
       });
     }
   }
@@ -84,11 +96,23 @@ export class Console {
     const atBottom =
       this.console.scrollTop + this.console.clientHeight + 1 >= this.console.scrollHeight;
     cb();
-    for (const container of this.containers) {
-      container.classList.toggle("empty", container.querySelector("code:empty") != null);
-    }
+    this.updateContainers();
     if (atBottom) {
       this.console.scrollTo(0, this.console.scrollHeight);
     }
+  }
+
+  updateContainers() {
+    let i = 0;
+    let first = true;
+    for (const container of this.containers) {
+      const empty = container.querySelector("code:empty") != null;
+      container.classList.toggle("empty", empty);
+      if (empty) continue;
+      container.style.setProperty("--console-i", `${i++}`);
+      container.classList.toggle("first", first);
+      first = false;
+    }
+    this.console.style.setProperty("--console-n", `${i}`);
   }
 }
