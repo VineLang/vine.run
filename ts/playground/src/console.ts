@@ -79,7 +79,7 @@ export class Console {
 
   update(cb: () => void) {
     const atBottom =
-      this.console.scrollTop + this.console.clientHeight >= this.console.scrollHeight;
+      this.console.scrollTop + this.console.clientHeight + 1 >= this.console.scrollHeight;
     cb();
     if (atBottom) {
       this.console.scrollTo(0, this.console.scrollHeight);
