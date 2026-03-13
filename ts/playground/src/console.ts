@@ -84,11 +84,11 @@ export class Console {
     const atBottom =
       this.console.scrollTop + this.console.clientHeight + 1 >= this.console.scrollHeight;
     cb();
-    if (atBottom) {
-      this.console.scrollTo(0, this.console.scrollHeight);
-    }
     for (const container of this.containers) {
       container.classList.toggle("empty", container.querySelector("code:empty") != null);
+    }
+    if (atBottom) {
+      this.console.scrollTo(0, this.console.scrollHeight);
     }
   }
 }
