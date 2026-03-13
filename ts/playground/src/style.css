@@ -151,6 +151,7 @@ main {
     border-radius: .25rem;
     background-color: var(--bg-grey);
     overflow: hidden;
+    max-width: 30em;
 
     & > :not(:first-child) {
       border-top: 1px solid var(--grey);
