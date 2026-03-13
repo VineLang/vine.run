@@ -17,9 +17,9 @@ export class Console {
     for (const container of this.console.querySelectorAll(".container")) {
       container.querySelector("h3")!.addEventListener("click", () => {
         this.update(() => {
-          container.classList.toggle("hide")
-        })
-      })
+          container.classList.toggle("hide");
+        });
+      });
     }
   }
 
@@ -42,7 +42,7 @@ export class Console {
         for (const diag_spans of diag_lines) {
           for (const diag_span of diag_spans) {
             const span = document.createElement("span");
-            if(diag_span.color != null) {
+            if (diag_span.color != null) {
               span.classList.add(diag_span.color);
             }
             if (diag_span.underline) {
@@ -56,7 +56,7 @@ export class Console {
           }
           this.diagnostics.appendChild(document.createElement("br"));
         }
-        while(this.diagnostics.lastChild?.nodeName === "BR") {
+        while (this.diagnostics.lastChild?.nodeName === "BR") {
           this.diagnostics.removeChild(this.diagnostics.lastChild);
         }
       }
@@ -82,10 +82,11 @@ export class Console {
   }
 
   update(cb: () => void) {
-    const atBottom = this.console.scrollTop + this.console.clientHeight >= this.console.scrollHeight;
+    const atBottom =
+      this.console.scrollTop + this.console.clientHeight >= this.console.scrollHeight;
     cb();
-    if(atBottom) {
-      this.console.scrollTo(0, this.console.scrollHeight)
+    if (atBottom) {
+      this.console.scrollTo(0, this.console.scrollHeight);
     }
   }
 }

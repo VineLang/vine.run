@@ -115,16 +115,19 @@ main {
   }
 
   .cm-scroller, .cm-content {
-    caret-color: var(--fg);
     font-family: var(--mono);
+  }
+
+  .cm-cursor-primary, .cm-cursor-secondary {
+    border-left: 1px solid var(--fg);
+  }
+
+  .cm-selectionBackground {
+    background-color: color-mix(in srgb, var(--fg) 20%, transparent);
   }
 
   .cm-content {
     padding: .25rem 0;
-  }
-
-  .cm-editor .cm-focused .cm-selectionBackground, ::selection {
-    background-color: color-mix(in srgb, var(--fg) 20%, transparent);
   }
 
   .cm-gutters {

@@ -2,8 +2,8 @@ import { RangeSetBuilder, StateEffect, StateField, type Transaction } from "@cod
 import { Decoration, type DecorationSet, EditorView } from "@codemirror/view";
 import { Language, Parser, Query, Tree } from "web-tree-sitter";
 import treeSitterWasm from "web-tree-sitter/web-tree-sitter.wasm?url";
-import treeSitterVineWasm from "../tree-sitter-vine/tree-sitter-vine.wasm?url";
 import highlightsScm from "../tree-sitter-vine/queries/highlights.scm?raw";
+import treeSitterVineWasm from "../tree-sitter-vine/tree-sitter-vine.wasm?url";
 
 export type Effects = { effects: StateEffect<DecorationSet>[]; tree: Tree };
 
