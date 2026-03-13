@@ -92,7 +92,7 @@ main {
   background-color: var(--bg-grey);
 }
 
-@media (min-width: 900px) {
+@media (min-width: 1200px) {
   main {
     grid-template-rows: none;
     grid-template-columns: 1fr 1fr;
@@ -216,17 +216,18 @@ main {
 #console {
   display: flex;
   flex-direction: column;
-  padding: 1rem;
-  gap: 1rem;
   background-color: var(--bg);
   font-family: var(--mono);
 
   .container {
     display: flex;
     flex-direction: column;
-    gap: 1rem;
 
     h3 {
+      position: sticky;
+      top: 0;
+      padding: 0.5rem;
+      background-color: var(--bg);
       border-bottom: 1px solid var(--grey);
       cursor: pointer;
       user-select: none;
@@ -238,6 +239,10 @@ main {
 
     &:has(code:empty) {
       display: none;
+    }
+
+    pre:has(code:not(:empty)) {
+      padding: 1rem;
     }
 
     &.hide {
