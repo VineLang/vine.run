@@ -223,8 +223,7 @@ main {
   font-family: var(--mono);
 
   .container {
-    display: flex;
-    flex-direction: column;
+    display: contents;
 
     h3 {
       position: sticky;
@@ -234,6 +233,12 @@ main {
       border-bottom: 1px solid var(--grey);
       cursor: pointer;
       user-select: none;
+    }
+
+    pre {
+      overflow: auto;
+      flex: 1 0 content;
+      scrollbar-width: thin;
     }
 
     > * {
