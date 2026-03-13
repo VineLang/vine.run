@@ -5,6 +5,7 @@ import { consumeWorker, type WebWorker } from "./workers/lib.ts";
 import { type API as Runtime } from "./workers/runtime.ts";
 
 class Playground {
+  examples: HTMLSelectElement;
   runButton: HTMLButtonElement;
   stopButton: HTMLButtonElement;
   breadthFirst: HTMLInputElement;
@@ -15,9 +16,10 @@ class Playground {
   runtime?: WebWorker<Runtime>;
 
   constructor() {
-    this.runButton = this.createActionButton("Run", "Ctrl+Enter", () => this.run());
-    this.stopButton = this.createActionButton("Stop", "Ctrl+X", () => this.stop());
-    this.breadthFirst = document.querySelector<HTMLInputElement>("#breadthFirst")!;
+    this.examples = document.querySelector("#examples")!;
+    this.runButton = this.createActionButton("Run", "Ctrl/Cmd+Enter", () => this.run());
+    this.stopButton = this.createActionButton("Stop", "Ctrl/Cmd+X", () => this.stop());
+    this.breadthFirst = document.querySelector("#breadthFirst")!;
 
     this.editor = new Editor(document.querySelector("#editor")!);
 
@@ -37,6 +39,14 @@ class Playground {
 
   async initialize() {
     await this.editor.initialize();
+
+    this.examples.value = "";
+    this.examples.addEventListener("change", (event) => {
+      if (event.target.value) {
+        this.editor.load(event.target.value);
+        this.examples.value = "";
+      }
+    });
 
     this.breadthFirst.disabled = true;
     this.setButton(this.runButton, false);

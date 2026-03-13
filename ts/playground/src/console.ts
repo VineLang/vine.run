@@ -35,10 +35,8 @@ export class Console {
 
   showDiagnostics(diag_lines: Diag[][]) {
     this.update(() => {
-      if (diag_lines.length == 0) {
-        this.diagnostics.textContent = "";
-      } else {
-        this.diagnostics.textContent = "";
+      this.diagnostics.textContent = "";
+      if (diag_lines.length > 0) {
         for (const diag_spans of diag_lines) {
           for (const diag_span of diag_spans) {
             const span = document.createElement("span");
@@ -71,14 +69,12 @@ export class Console {
 
   showTerminated() {
     this.update(() => {
-      this.statistics.textContent += "\n\n(terminated)";
+      this.statistics.append("\n\n(terminated)");
     });
   }
 
   appendOutput(output: string) {
-    this.update(() => {
-      this.output.textContent += output;
-    });
+    this.update(() => this.output.append(output));
   }
 
   update(cb: () => void) {
