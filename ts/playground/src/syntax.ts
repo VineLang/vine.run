@@ -65,7 +65,8 @@ const nodeField = StateField.define<DecorationSet>({
 });
 
 function nodeDecoration(name: string): Decoration {
-  return Decoration.mark({ class: "ts-" + name });
+  const className = name.split(".").map((scope, i) => "ts" + "-".repeat(i + 1) + scope).join(" ");
+  return Decoration.mark({ class: className });
 }
 
 export const syntaxExtension = nodeField;
