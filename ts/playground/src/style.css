@@ -132,7 +132,7 @@ main {
   }
 
   .cm-gutters {
-    background: none;
+    background: var(--bg);
     border: none;
   }
 
