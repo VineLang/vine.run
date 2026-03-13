@@ -5,16 +5,19 @@ export type ConsoleElements = Pick<Console, "console" | "diagnostics" | "statist
 export class Console {
   console: HTMLElement;
   diagnostics: HTMLElement;
-  statistics: HTMLElement;
   output: HTMLElement;
+  statistics: HTMLElement;
+  containers: Element[]
 
   constructor(elements: ConsoleElements) {
     this.console = elements.console;
     this.diagnostics = elements.diagnostics;
-    this.statistics = elements.statistics;
     this.output = elements.output;
+    this.statistics = elements.statistics;
 
-    for (const container of this.console.querySelectorAll(".container")) {
+   this.containers = [...this.console.querySelectorAll(".container")];
+
+    for (const container of this.containers) {
       container.querySelector("h3")!.addEventListener("click", () => {
         this.update(() => {
           container.classList.toggle("hide");
@@ -83,6 +86,9 @@ export class Console {
     cb();
     if (atBottom) {
       this.console.scrollTo(0, this.console.scrollHeight);
+    }
+    for (const container of this.containers) {
+      container.classList.toggle("empty", container.querySelector("code:empty") != null);
     }
   }
 }

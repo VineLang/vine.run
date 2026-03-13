@@ -239,18 +239,15 @@ main {
       overflow: auto;
       flex: 0 0 content;
       scrollbar-width: thin;
+      padding: 1rem;
     }
 
     > * {
       margin: 0;
     }
 
-    &:has(code:empty) {
+    &.empty {
       display: none;
-    }
-
-    pre:has(code:not(:empty)) {
-      padding: 1rem;
     }
 
     &.hide {
