@@ -225,8 +225,6 @@ main {
   font-family: var(--mono);
 
   .container {
-    display: contents;
-
     h3 {
       position: sticky;
       top: 0;
