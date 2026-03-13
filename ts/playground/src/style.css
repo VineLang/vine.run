@@ -92,7 +92,7 @@ main {
   background-color: var(--bg-grey);
 }
 
-@media (min-width: 1200px) {
+@media (min-aspect-ratio: 1) {
   main {
     grid-template-rows: none;
     grid-template-columns: 1fr 1fr;
