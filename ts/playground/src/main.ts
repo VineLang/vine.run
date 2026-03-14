@@ -41,9 +41,10 @@ class Playground {
     await this.editor.initialize();
 
     this.examples.value = "";
-    this.examples.addEventListener("change", (event) => {
-      if (event.target.value) {
-        this.editor.load(event.target.value);
+    this.examples.addEventListener("change", (event: Event) => {
+      const example = event.target as HTMLSelectElement;
+      if (example.value) {
+        this.editor.load(example.value);
         this.examples.value = "";
       }
     });

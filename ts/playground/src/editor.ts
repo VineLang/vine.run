@@ -86,18 +86,18 @@ export class Editor {
     update.view.dispatch({ effects });
   }
 
-  load(example: keyof typeof examples) {
+  load(example: string) {
     this.view.dispatch({
       changes: {
         from: 0,
         to: this.view.state.doc.length,
-        insert: examples[example],
+        insert: EXAMPLES[example as keyof typeof EXAMPLES],
       },
     });
   }
 }
 
-const examples = {
+const EXAMPLES = {
   hello_world: `
 pub fn main(&io: &IO) {
   io.println("Hello, world!");
