@@ -58,7 +58,7 @@
           )
           (
             cd rust/playground
-            ${pkgs.wasm-pack}/bin/wasm-pack build --no-opt
+            ${pkgs.wasm-pack}/bin/wasm-pack build "$@"
             rm -rf ../../ts/playground/playground-rs-pkg
             mv pkg ../../ts/playground/playground-rs-pkg
           )
@@ -72,13 +72,13 @@
           ${pkgs.cargo-watch}/bin/cargo-watch \
             --ignore pkg/ \
             --workdir rust/playground/ \
-            --shell 'cd ../.. && ${setup}/bin/setup && cd ts/playground && npx vite serve'
+            --shell 'cd ../.. && ${setup}/bin/setup --dev --no-opt && cd ts/playground && npx vite serve'
         '';
 
         build = pkgs.writeShellScriptBin "build" ''
           test -f flake.nix || { echo "$(basename $0) must run at the repository root"; exit 1; }
 
-          ${setup}/bin/setup
+          ${setup}/bin/setup --release
           cd ts/playground && npx vite build
         '';
       in
