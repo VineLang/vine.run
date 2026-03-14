@@ -56,7 +56,7 @@ export class Editor {
           ...searchKeymap,
         ]),
         EditorState.allowMultipleSelections.of(true),
-        lspClient().plugin("file:///main/main.vi"),
+        lspClient().plugin("file:///play.vi"),
         syntaxExtension,
         EditorView.updateListener.of(async (update: ViewUpdate) => await this.onUpdate(update)),
       ],
@@ -71,7 +71,7 @@ export class Editor {
   }
 
   files(): Record<string, string> {
-    return { main: this.view.state.doc.toString() };
+    return { play: this.view.state.doc.toString() };
   }
 
   async onUpdate(update: ViewUpdate) {

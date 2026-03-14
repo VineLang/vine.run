@@ -67,7 +67,7 @@ impl PlaygroundCompiler {
     let fs = PlaygroundFS::new(&VINE_ROOT_DIR, files);
 
     let mut loader = Loader::new(&mut self.compiler, fs, None);
-    loader.load_main_mod(Ident("main".into()), PathBuf::from("/main"));
+    loader.load_main_mod(Ident("play".into()), PathBuf::from("/play.vi"));
 
     let mut nets = self.compiler.compile(()).ok()?;
     nets.extend(self.root_nets.clone().drain(..));

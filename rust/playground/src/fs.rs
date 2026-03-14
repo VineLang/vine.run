@@ -26,7 +26,7 @@ impl PlaygroundFS {
 #[derive(Debug)]
 enum PlaygroundPath<'a> {
   Root(&'a Path),
-  Main(Option<Ident>),
+  Main(Ident),
 }
 
 impl<'a> PlaygroundPath<'a> {
@@ -34,14 +34,8 @@ impl<'a> PlaygroundPath<'a> {
     if let Ok(path) = path.strip_prefix("/root") {
       return Some(Self::Root(path));
     }
-    if let Ok(path) = path.strip_prefix("/main") {
-      return if path == "" {
-        Some(Self::Main(None))
-      } else {
-        Some(Self::Main(Some(Ident::new(path.with_extension("").to_str()?)?)))
-      };
-    }
-    None
+
+    Some(Self::Main(Ident::new(path.strip_prefix("/").ok()?.with_extension("").to_str()?)?))
   }
 }
 
@@ -56,8 +50,7 @@ impl FS for PlaygroundFS {
         DirEntry::Dir(_) => Some(EntryKind::Dir),
         DirEntry::File(_) => Some(EntryKind::File),
       },
-      PlaygroundPath::Main(None) => Some(EntryKind::Dir),
-      PlaygroundPath::Main(Some(ident)) if self.main.contains_key(&ident) => Some(EntryKind::File),
+      PlaygroundPath::Main(ident) if self.main.contains_key(&ident) => Some(EntryKind::File),
       _ => None,
     }
   }
@@ -75,8 +68,7 @@ impl FS for PlaygroundFS {
     let file_name = format!("{}.vi", name.0);
     match PlaygroundPath::parse(path).unwrap() {
       PlaygroundPath::Root(path) => PathBuf::from("/root").join(path).join(&file_name),
-      PlaygroundPath::Main(None) => PathBuf::from("/main").join(&file_name),
-      PlaygroundPath::Main(Some(_)) => unreachable!(),
+      PlaygroundPath::Main(_) => unreachable!(),
     }
   }
 
@@ -84,7 +76,7 @@ impl FS for PlaygroundFS {
   fn read_file(&mut self, path: &Self::Path) -> Option<String> {
     match PlaygroundPath::parse(path)? {
       PlaygroundPath::Root(path) => Some(self.root.get_file(path)?.contents_utf8()?.to_owned()),
-      PlaygroundPath::Main(ident) => self.main.get(&ident?).cloned(),
+      PlaygroundPath::Main(ident) => self.main.get(&ident).cloned(),
     }
   }
 }

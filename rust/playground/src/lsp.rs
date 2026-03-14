@@ -6,7 +6,7 @@ use vine::{compiler::Compiler, components::loader::FileId};
 use vine_util::idx::IdxVec;
 use wasm_bindgen::{JsValue, prelude::wasm_bindgen};
 
-use crate::{compiler::PlaygroundCompiler};
+use crate::compiler::PlaygroundCompiler;
 
 #[wasm_bindgen]
 pub struct PlaygroundLsp {
@@ -35,7 +35,7 @@ impl PlaygroundLsp {
       vine_lsp::lsp(
         self.compiler,
         self.file_paths,
-        vec!["/main/main.vi".to_owned()],
+        vec!["/play.vi".to_owned()],
         input_rx,
         output_tx,
       )

@@ -7,7 +7,7 @@ export class Console {
   diagnostics: HTMLElement;
   output: HTMLElement;
   statistics: HTMLElement;
-  containers: Element[]
+  containers: Element[];
 
   constructor(elements: ConsoleElements) {
     this.console = elements.console;
@@ -15,7 +15,7 @@ export class Console {
     this.output = elements.output;
     this.statistics = elements.statistics;
 
-   this.containers = [...this.console.querySelectorAll(".container")];
+    this.containers = [...this.console.querySelectorAll(".container")];
 
     for (const container of this.containers) {
       container.querySelector("h3")!.addEventListener("click", () => {
