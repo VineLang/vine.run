@@ -1,4 +1,4 @@
-import { defaultKeymap, history, historyKeymap } from "@codemirror/commands";
+import { defaultKeymap, history, historyKeymap, indentWithTab } from "@codemirror/commands";
 import { languageServerExtensions, LSPClient, type Transport } from "@codemirror/lsp-client";
 import { searchKeymap } from "@codemirror/search";
 import { EditorState } from "@codemirror/state";
@@ -54,6 +54,7 @@ export class Editor {
           ...defaultKeymap,
           ...historyKeymap,
           ...searchKeymap,
+          indentWithTab,
         ]),
         EditorState.allowMultipleSelections.of(true),
         lspClient().plugin("file:///play.vi"),
