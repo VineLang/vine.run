@@ -21,3 +21,12 @@ jobs:
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+
+      - uses: actions/upload-pages-artifact@v3
+        if: github.ref_name == 'main'
+        with:
+          path: "ts/playground/dist"
+
+      - id: deployment
+        if: github.ref_name == 'main'
+        uses: actions/deploy-pages@v4
