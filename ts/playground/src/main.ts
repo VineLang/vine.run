@@ -65,7 +65,7 @@ class Playground {
         event.preventDefault();
         this.runButton.click();
       }
-      if (ctrl && event.key == "x") {
+      if (ctrl && event.key == "\\") {
         event.preventDefault();
         this.stopButton.click();
       }
