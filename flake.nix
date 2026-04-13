@@ -57,10 +57,10 @@
             chmod +w src/{theme,typsitter}.css
           )
           (
-            cd rust/playground
+            cd rust/
             ${pkgs.wasm-pack}/bin/wasm-pack build "$@"
-            rm -rf ../../ts/playground/playground-rs-pkg
-            mv pkg ../../ts/playground/playground-rs-pkg
+            rm -rf ../ts/playground/playground-rs-pkg
+            mv pkg ../ts/playground/playground-rs-pkg
           )
         '';
 
@@ -71,8 +71,8 @@
 
           ${pkgs.cargo-watch}/bin/cargo-watch \
             --ignore pkg/ \
-            --workdir rust/playground/ \
-            --shell 'cd ../.. && ${setup}/bin/setup --dev --no-opt && cd ts/playground && npx vite serve'
+            --workdir rust/ \
+            --shell 'cd .. && ${setup}/bin/setup --dev --no-opt && cd ts/playground && npx vite serve'
         '';
 
         build = pkgs.writeShellScriptBin "build" ''
