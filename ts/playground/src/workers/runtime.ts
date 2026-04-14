@@ -10,8 +10,9 @@ init_console_log_tracing();
 defineWorker<API>({
   async runNets(breadthFirst: boolean, nets: string): Promise<void> {
     const runtime = new PlaygroundRuntime(breadthFirst);
-    runtime.runNets(nets, (stats: string, output: string) => {
+    const flags = await runtime.runNets(nets, (stats: string, output: string) => {
       self.postMessage(["output", stats, output]);
     });
+    self.postMessage(["flags", flags]);
   },
 });

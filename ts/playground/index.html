@@ -36,7 +36,7 @@
       <img class="logo" src="/img/logo.svg" draggable="false">
       <h1>Playground</h1>
       <div style="flex: 1"></div>
-      <div class="controls">
+      <div id="controls" style="visibility: hidden">
         <select name="examples" id="examples">
           <option disabled selected value>Examples</option>
           <option value="hello_world">hello_world.vi</option>
@@ -47,7 +47,7 @@
         </select>
         <label>
           <input type="checkbox" id="breadthFirst">
-          Breadth First
+          --breadth-first
         </label>
         <button id="action">Run</button>
       </div>

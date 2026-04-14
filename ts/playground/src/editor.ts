@@ -6,13 +6,13 @@ import { drawSelection, EditorView, keymap, lineNumbers, type ViewUpdate } from 
 import { Tree } from "web-tree-sitter";
 import { Syntax, syntaxExtension } from "./syntax.ts";
 import { consumeWorker } from "./workers/lib.ts";
-import { type API as Lsp } from "./workers/lsp.ts";
+import { type API as LSP } from "./workers/lsp.ts";
 
 function lspClient(): LSPClient {
   type Handler = (msg: string) => void;
 
-  let handlers: Handler[] = [];
-  const lsp = consumeWorker<Lsp>(
+  const handlers = new Set<Handler>();
+  const lsp = consumeWorker<LSP>(
     new Worker(new URL("./workers/lsp.ts", import.meta.url), {
       type: "module",
     }),
@@ -29,10 +29,10 @@ function lspClient(): LSPClient {
       lsp.send(message);
     },
     subscribe(handler: Handler) {
-      handlers.push(handler);
+      handlers.add(handler);
     },
     unsubscribe(handler: Handler) {
-      handlers = handlers.filter(h => h != handler);
+      handlers.delete(handler);
     },
   };
   return new LSPClient({ extensions: languageServerExtensions() }).connect(transport);
@@ -45,7 +45,6 @@ export class Editor {
 
   constructor(parent: HTMLElement) {
     const state = EditorState.create({
-      // extract from: https://github.com/codemirror/basic-setup/blob/main/src/codemirror.ts
       extensions: [
         drawSelection(),
         lineNumbers(),
@@ -79,7 +78,6 @@ export class Editor {
     if (!update.docChanged) {
       return;
     }
-
     const { effects, tree } = this.syntax!.effects(
       update.state.doc.toString(),
     );

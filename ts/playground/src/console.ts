@@ -38,14 +38,21 @@ export class Console {
     }
   }
 
-  showLoading(message: string) {
-    this.diagnostics.textContent = `${message}`;
+  showLoading(content: string) {
+    this.showDiagnostics([[{
+      color: null,
+      bold: false,
+      underline: false,
+      content,
+    }]]);
   }
 
   clear() {
-    this.diagnostics.textContent = "";
-    this.statistics.textContent = "";
-    this.output.textContent = "";
+    this.update(() => {
+      this.diagnostics.textContent = "";
+      this.statistics.textContent = "";
+      this.output.textContent = "";
+    });
   }
 
   showDiagnostics(diag_lines: Diag[][]) {
@@ -79,6 +86,20 @@ export class Console {
   showStatistics(stats: string) {
     this.update(() => {
       this.statistics.textContent = stats.trim();
+    });
+  }
+
+  showFlags(flags: string) {
+    this.update(() => {
+      if (flags.length > 0) {
+        const span = document.createElement("span");
+        span.textContent = flags;
+        if (this.diagnostics.children.length > 0) {
+          this.diagnostics.appendChild(document.createElement("br"));
+          this.diagnostics.appendChild(document.createElement("br"));
+        }
+        this.diagnostics.appendChild(span);
+      }
     });
   }
 

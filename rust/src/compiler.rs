@@ -33,7 +33,6 @@ impl PlaygroundCompiler {
 
   #[wasm_bindgen(js_name = compileRoot)]
   pub fn compile_root(&mut self) -> bool {
-    let _ = self._load_root();
     self._compile_root()
   }
 
@@ -59,6 +58,18 @@ impl PlaygroundCompiler {
   }
 
   #[tracing::instrument(level = "trace", skip(self), ret)]
+  fn _compile_root(&mut self) -> bool {
+    let _ = self._load_root();
+
+    if let Ok(nets) = self.compiler.compile(()) {
+      self.root_nets = nets;
+      self.checkpoint = self.compiler.checkpoint();
+    }
+
+    !self.root_nets.is_empty()
+  }
+
+  #[tracing::instrument(level = "trace", skip(self), ret)]
   fn _compile_files(&mut self, files: JsValue) -> Option<String> {
     self.compiler.revert(&self.checkpoint);
 
@@ -74,16 +85,6 @@ impl PlaygroundCompiler {
     Optimizer::default().optimize(&mut nets, &[]);
 
     Some(nets.to_string())
-  }
-
-  #[tracing::instrument(level = "trace", skip(self), ret)]
-  fn _compile_root(&mut self) -> bool {
-    if let Ok(nets) = self.compiler.compile(()) {
-      self.root_nets = nets;
-      self.checkpoint = self.compiler.checkpoint();
-    }
-
-    !self.root_nets.is_empty()
   }
 }
 

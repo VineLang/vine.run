@@ -6,40 +6,47 @@ import { type API as Runtime } from "./workers/runtime.ts";
 
 class Playground {
   examples: HTMLSelectElement;
+  breadthFirst: HTMLInputElement;
   runButton: HTMLButtonElement;
   stopButton: HTMLButtonElement;
-  breadthFirst: HTMLInputElement;
 
   editor: Editor;
   console: Console;
   compiler: WebWorker<Compiler>;
   runtime?: WebWorker<Runtime>;
+  runId: number;
 
   constructor() {
     this.examples = document.querySelector("#examples")!;
-    this.runButton = this.createActionButton("Run", "Ctrl/Cmd+Enter", () => this.run());
-    this.stopButton = this.createActionButton("Stop", "Ctrl/Cmd+X", () => this.stop());
     this.breadthFirst = document.querySelector("#breadthFirst")!;
+    this.runButton = this.createActionButton("Run", "Ctrl/Cmd+Enter", () => this.run());
+    this.stopButton = this.createActionButton("Stop", "Ctrl/Cmd+\\", () => this.stop());
 
     this.editor = new Editor(document.querySelector("#editor")!);
-
     this.console = new Console({
       console: document.querySelector("#console")!,
       diagnostics: document.querySelector("#diagnostics")!,
       statistics: document.querySelector("#statistics")!,
       output: document.querySelector("#output")!,
     });
-
     this.compiler = consumeWorker(
       new Worker(new URL("./workers/compiler.ts", import.meta.url), {
         type: "module",
       }),
     );
+    this.runId = 0;
   }
 
   async initialize() {
     await this.editor.initialize();
+    this.initExamples();
+    await this.compileRoot();
+    this.addKeyEvents();
+    this.setRunControls();
+    this.showControls();
+  }
 
+  initExamples() {
     this.examples.value = "";
     this.examples.addEventListener("change", (event: Event) => {
       const example = event.target as HTMLSelectElement;
@@ -48,17 +55,18 @@ class Playground {
         this.examples.value = "";
       }
     });
+  }
 
-    this.breadthFirst.disabled = true;
-    this.setButton(this.runButton, false);
-
-    this.console.showLoading("compiling root...");
+  async compileRoot() {
+    this.console.showLoading("Compiling root...");
+    const start = performance.now();
     await this.compiler.compileRoot();
-    this.console.clear();
+    const end = performance.now();
+    const elapsed = ((end - start) / 1000).toFixed(2);
+    this.console.showLoading(`Compiled root in ${elapsed} seconds.`);
+  }
 
-    this.breadthFirst.disabled = false;
-    this.setButton(this.runButton, true);
-
+  addKeyEvents() {
     document.addEventListener("keydown", (event) => {
       const ctrl = event.ctrlKey || event.metaKey;
       if (ctrl && event.key == "Enter") {
@@ -73,36 +81,39 @@ class Playground {
   }
 
   async run() {
-    this.stop();
-
     this.console.clear();
-    this.breadthFirst.disabled = true;
-    this.setButton(this.runButton, false);
+    this.console.showLoading("Compiling playground...");
+    const files = this.editor.files();
+    const runId = ++this.runId;
 
-    const nets = await this.compiler.compileFiles(this.editor.files());
+    const nets = await this.compiler.compileFiles(files);
     const diags = await this.compiler.diags();
+
+    this.stop();
+    this.setStopControls();
     this.console.showDiagnostics(diags);
 
-    this.setButton(this.stopButton, true);
-
-    if (nets) {
+    if (nets && runId === this.runId) {
+      this.newRuntime();
       await this.runtime!.runNets(this.breadthFirst.checked, nets);
       this.runtime!.terminate();
       this.runtime = undefined;
     }
 
-    this.breadthFirst.disabled = false;
-    this.setButton(this.runButton, true);
+    this.setRunControls();
   }
 
   stop() {
-    this.setButton(this.stopButton, false);
-
     if (this.runtime) {
       this.runtime.terminate();
+      this.runtime = undefined;
       this.console.showTerminated();
     }
 
+    this.setRunControls();
+  }
+
+  newRuntime() {
     this.runtime = consumeWorker(
       new Worker(new URL("./workers/runtime.ts", import.meta.url), {
         type: "module",
@@ -113,15 +124,10 @@ class Playground {
         this.console.showStatistics(stats);
         this.console.appendOutput(output);
       }
+      if (tag === "flags") {
+        this.console.showFlags(stats);
+      }
     });
-
-    this.breadthFirst.disabled = false;
-    this.setButton(this.runButton, true);
-  }
-
-  setButton(button: HTMLButtonElement, enabled: boolean) {
-    button.disabled = !enabled;
-    document.getElementById("action")!.replaceWith(button);
   }
 
   createActionButton(label: string, tooltip: string, onclick: () => void): HTMLButtonElement {
@@ -131,6 +137,24 @@ class Playground {
     button.title = tooltip;
     button.addEventListener("click", onclick);
     return button;
+  }
+
+  setButton(button: HTMLButtonElement) {
+    document.getElementById("action")!.replaceWith(button);
+  }
+
+  showControls() {
+    document.querySelector<HTMLDivElement>("#controls")!.style.visibility = "visible";
+  }
+
+  setRunControls() {
+    this.breadthFirst.disabled = false;
+    this.setButton(this.runButton);
+  }
+
+  setStopControls() {
+    this.breadthFirst.disabled = true;
+    this.setButton(this.stopButton);
   }
 }
 

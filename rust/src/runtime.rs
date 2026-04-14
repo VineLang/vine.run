@@ -14,12 +14,12 @@ impl PlaygroundRuntime {
   }
 
   #[wasm_bindgen(js_name = runNets)]
-  pub fn run_nets(self, nets: String, inspect_fn: &js_sys::Function) -> bool {
+  pub fn run_nets(self, nets: String, inspect_fn: &js_sys::Function) -> String {
     self._run_nets(nets, inspect_fn)
   }
 
   #[tracing::instrument(level = "trace", skip_all, ret)]
-  fn _run_nets(self, nets: String, inspect_fn: &js_sys::Function) -> bool {
+  fn _run_nets(self, nets: String, inspect_fn: &js_sys::Function) -> String {
     let mut nets = Parser::parse(&nets).unwrap();
     Optimizer::default().optimize(&mut nets, &[]);
     Run { breadth_first: self.breadth_first, ..Run::default() }
@@ -38,6 +38,6 @@ impl PlaygroundRuntime {
         },
         100_000,
       )
-      .success()
+      .error_message(true)
   }
 }
