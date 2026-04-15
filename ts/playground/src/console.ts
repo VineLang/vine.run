@@ -1,11 +1,12 @@
 import { type Diag } from "./workers/compiler.ts";
 
-export type ConsoleElements = Pick<Console, "console" | "diagnostics" | "statistics" | "output">;
+export type ConsoleElements = Pick<Console, "console" | "diagnostics" | "statistics" | "output" | "error">;
 
 export class Console {
   console: HTMLElement;
   diagnostics: HTMLElement;
   output: HTMLElement;
+  error: HTMLElement;
   statistics: HTMLElement;
   containers: HTMLElement[];
 
@@ -13,6 +14,7 @@ export class Console {
     this.console = elements.console;
     this.diagnostics = elements.diagnostics;
     this.output = elements.output;
+    this.error = elements.error;
     this.statistics = elements.statistics;
 
     this.containers = [...this.console.querySelectorAll<HTMLElement>(".container")];
@@ -52,6 +54,7 @@ export class Console {
       this.diagnostics.textContent = "";
       this.statistics.textContent = "";
       this.output.textContent = "";
+      this.error.textContent = "";
     });
   }
 
@@ -92,13 +95,10 @@ export class Console {
   showFlags(flags: string) {
     this.update(() => {
       if (flags.length > 0) {
-        const span = document.createElement("span");
-        span.textContent = flags;
-        if (this.diagnostics.children.length > 0) {
-          this.diagnostics.appendChild(document.createElement("br"));
-          this.diagnostics.appendChild(document.createElement("br"));
+        if (this.error.children.length > 0) {
+          this.error.append("\n\n");
         }
-        this.diagnostics.appendChild(span);
+        this.error.append(flags);
       }
     });
   }

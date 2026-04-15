@@ -21,7 +21,6 @@ use crate::fs::{PlaygroundFS, VINE_ROOT_DIR};
 pub struct PlaygroundCompiler {
   pub(crate) compiler: Compiler,
   pub(crate) checkpoint: Checkpoint,
-  pub(crate) root_nets: Nets,
 }
 
 #[wasm_bindgen]
@@ -37,8 +36,8 @@ impl PlaygroundCompiler {
   }
 
   #[wasm_bindgen(js_name = compileFiles)]
-  pub fn compile_files(&mut self, files: JsValue) -> Option<String> {
-    self._compile_files(files)
+  pub fn compile_files(&mut self, debug: bool, files: JsValue) -> Option<String> {
+    self._compile_files(debug, files)
   }
 
   pub fn diags(&self) -> JsValue {
@@ -61,27 +60,27 @@ impl PlaygroundCompiler {
   fn _compile_root(&mut self) -> bool {
     let _ = self._load_root();
 
-    if let Ok(nets) = self.compiler.compile(()) {
-      self.root_nets = nets;
-      self.checkpoint = self.compiler.checkpoint();
+    if self.compiler.check(()).is_err() {
+      return false;
     }
 
-    !self.root_nets.is_empty()
+    self.checkpoint = self.compiler.checkpoint();
+
+    true
   }
 
   #[tracing::instrument(level = "trace", skip(self), ret)]
-  fn _compile_files(&mut self, files: JsValue) -> Option<String> {
-    self.compiler.revert(&self.checkpoint);
-
+  fn _compile_files(&mut self, compiler_debug: bool, files: JsValue) -> Option<String> {
     let files: HashMap<String, String> = serde_wasm_bindgen::from_value(files).unwrap();
     let files = files.into_iter().map(|(name, content)| (Ident(name), content)).collect();
     let fs = PlaygroundFS::new(&VINE_ROOT_DIR, files);
 
+    self.compiler.revert(&self.checkpoint);
     let mut loader = Loader::new(&mut self.compiler, fs, None);
     loader.load_main_mod(Ident("play".into()), PathBuf::from("/play.vi"));
 
+    self.compiler.debug = compiler_debug;
     let mut nets = self.compiler.compile(()).ok()?;
-    nets.extend(self.root_nets.clone().drain(..));
     Optimizer::default().optimize(&mut nets, &[]);
 
     Some(nets.to_string())

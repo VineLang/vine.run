@@ -7,6 +7,7 @@ import { type API as Runtime } from "./workers/runtime.ts";
 class Playground {
   examples: HTMLSelectElement;
   breadthFirst: HTMLInputElement;
+  debug: HTMLInputElement;
   runButton: HTMLButtonElement;
   stopButton: HTMLButtonElement;
 
@@ -19,6 +20,7 @@ class Playground {
   constructor() {
     this.examples = document.querySelector("#examples")!;
     this.breadthFirst = document.querySelector("#breadthFirst")!;
+    this.debug = document.querySelector("#debug")!;
     this.runButton = this.createActionButton("Run", "Ctrl/Cmd+Enter", () => this.run());
     this.stopButton = this.createActionButton("Stop", "Ctrl/Cmd+\\", () => this.stop());
 
@@ -26,8 +28,9 @@ class Playground {
     this.console = new Console({
       console: document.querySelector("#console")!,
       diagnostics: document.querySelector("#diagnostics")!,
-      statistics: document.querySelector("#statistics")!,
       output: document.querySelector("#output")!,
+      error: document.querySelector("#error")!,
+      statistics: document.querySelector("#statistics")!,
     });
     this.compiler = consumeWorker(
       new Worker(new URL("./workers/compiler.ts", import.meta.url), {
@@ -86,7 +89,7 @@ class Playground {
     const files = this.editor.files();
     const runId = ++this.runId;
 
-    const nets = await this.compiler.compileFiles(files);
+    const nets = await this.compiler.compileFiles(this.debug.checked, files);
     const diags = await this.compiler.diags();
 
     this.stop();
@@ -95,7 +98,7 @@ class Playground {
 
     if (nets && runId === this.runId) {
       this.newRuntime();
-      await this.runtime!.runNets(this.breadthFirst.checked, nets);
+      await this.runtime!.runNets(!this.debug.checked, this.breadthFirst.checked, nets);
       this.runtime!.terminate();
       this.runtime = undefined;
     }
@@ -149,11 +152,13 @@ class Playground {
 
   setRunControls() {
     this.breadthFirst.disabled = false;
+    this.debug.disabled = false;
     this.setButton(this.runButton);
   }
 
   setStopControls() {
     this.breadthFirst.disabled = true;
+    this.debug.disabled = true;
     this.setButton(this.stopButton);
   }
 }

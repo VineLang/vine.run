@@ -3,7 +3,7 @@ import { defineWorker } from "./lib.ts";
 
 export type API = {
   compileRoot(): Promise<void>;
-  compileFiles(files: Record<string, string>): Promise<string | undefined>;
+  compileFiles(debug: boolean, files: Record<string, string>): Promise<string | undefined>;
   diags(): Promise<Diag[][]>;
 };
 
@@ -23,8 +23,8 @@ defineWorker<API>({
     compiler.compileRoot();
   },
 
-  async compileFiles(files: Record<string, string>): Promise<string | undefined> {
-    return compiler.compileFiles(files);
+  async compileFiles(debug: boolean, files: Record<string, string>): Promise<string | undefined> {
+    return compiler.compileFiles(debug, files);
   },
 
   async diags(): Promise<Diag[][]> {

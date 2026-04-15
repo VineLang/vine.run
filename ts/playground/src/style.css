@@ -84,10 +84,6 @@ header {
     display: flex;
     gap: 1rem;
     padding: 0 1rem 0 1rem;
-
-    label {
-      font-family: var(--mono);
-    }
   }
 }
 
