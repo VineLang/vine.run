@@ -415,12 +415,12 @@ checksum = "8f42a60cbdf9a97f5d2305f08a87dc4e09308d1276d28c869c684d7777685682"
 [[package]]
 name = "ivm"
 version = "0.0.0"
-source = "git+https://github.com/VineLang/vine.git?branch=enricozb%2Fplayground#773b4f23541445a30de43b109ed1f987a5199a14"
+source = "git+https://github.com/VineLang/vine.git?branch=enricozb%2Fplayground#408b922550e4ed1daa390434ee62689d79900673"
 
 [[package]]
 name = "ivy"
 version = "0.0.0"
-source = "git+https://github.com/VineLang/vine.git?branch=enricozb%2Fplayground#773b4f23541445a30de43b109ed1f987a5199a14"
+source = "git+https://github.com/VineLang/vine.git?branch=enricozb%2Fplayground#408b922550e4ed1daa390434ee62689d79900673"
 dependencies = [
  "indexmap",
  "ivm",
@@ -1041,7 +1041,7 @@ checksum = "0b928f33d975fc6ad9f86c8f283853ad26bdd5b10b7f1542aa2fa15e2289105a"
 [[package]]
 name = "vine"
 version = "0.0.0"
-source = "git+https://github.com/VineLang/vine.git?branch=enricozb%2Fplayground#773b4f23541445a30de43b109ed1f987a5199a14"
+source = "git+https://github.com/VineLang/vine.git?branch=enricozb%2Fplayground#408b922550e4ed1daa390434ee62689d79900673"
 dependencies = [
  "class",
  "ivm",
@@ -1053,7 +1053,7 @@ dependencies = [
 [[package]]
 name = "vine-lsp"
 version = "0.0.0"
-source = "git+https://github.com/VineLang/vine.git?branch=enricozb%2Fplayground#773b4f23541445a30de43b109ed1f987a5199a14"
+source = "git+https://github.com/VineLang/vine.git?branch=enricozb%2Fplayground#408b922550e4ed1daa390434ee62689d79900673"
 dependencies = [
  "futures",
  "glob",
@@ -1067,7 +1067,7 @@ dependencies = [
 [[package]]
 name = "vine-util"
 version = "0.0.0"
-source = "git+https://github.com/VineLang/vine.git?branch=enricozb%2Fplayground#773b4f23541445a30de43b109ed1f987a5199a14"
+source = "git+https://github.com/VineLang/vine.git?branch=enricozb%2Fplayground#408b922550e4ed1daa390434ee62689d79900673"
 dependencies = [
  "hashbrown 0.14.5",
  "nohash-hasher",
