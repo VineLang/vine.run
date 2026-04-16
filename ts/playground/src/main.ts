@@ -4,12 +4,15 @@ import { type API as Compiler } from "./workers/compiler.ts";
 import { consumeWorker, type WebWorker } from "./workers/lib.ts";
 import { type API as Runtime } from "./workers/runtime.ts";
 
+const SHARE_VERSION = 0;
+
 class Playground {
   examples: HTMLSelectElement;
   breadthFirst: HTMLInputElement;
   debug: HTMLInputElement;
   runButton: HTMLButtonElement;
   stopButton: HTMLButtonElement;
+  shareButton: HTMLButtonElement;
 
   editor: Editor;
   console: Console;
@@ -23,13 +26,13 @@ class Playground {
     this.debug = document.querySelector("#debug")!;
     this.runButton = this.createActionButton("Run", "Ctrl/Cmd+Enter", () => this.run());
     this.stopButton = this.createActionButton("Stop", "Ctrl/Cmd+\\", () => this.stop());
+    this.shareButton = document.querySelector("#share")!;
 
     this.editor = new Editor(document.querySelector("#editor")!);
     this.console = new Console({
       console: document.querySelector("#console")!,
       diagnostics: document.querySelector("#diagnostics")!,
       output: document.querySelector("#output")!,
-      error: document.querySelector("#error")!,
       statistics: document.querySelector("#statistics")!,
     });
     this.compiler = consumeWorker(
@@ -45,8 +48,7 @@ class Playground {
     this.initExamples();
     await this.compileRoot();
     this.addKeyEvents();
-    this.setRunControls();
-    this.showControls();
+    this.initControls();
   }
 
   initExamples() {
@@ -146,8 +148,18 @@ class Playground {
     document.getElementById("action")!.replaceWith(button);
   }
 
-  showControls() {
+  initControls() {
     document.querySelector<HTMLDivElement>("#controls")!.style.visibility = "visible";
+    this.setRunControls();
+    this.shareButton.addEventListener("click", async () => {
+      const content = this.editor.files().play;
+      const body = `${SHARE_VERSION}\n${content}`;
+      const { key: _ } = await fetch("https://api.vine.run", {
+        method: "POST",
+        headers: { "Vine-Play": "1" },
+        body,
+      }).then(res => res.json());
+    });
   }
 
   setRunControls() {

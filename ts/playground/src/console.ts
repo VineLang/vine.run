@@ -1,12 +1,14 @@
 import { type Diag } from "./workers/compiler.ts";
 
-export type ConsoleElements = Pick<Console, "console" | "diagnostics" | "statistics" | "output" | "error">;
+export type ConsoleElements = Pick<
+  Console,
+  "console" | "diagnostics" | "statistics" | "output"
+>;
 
 export class Console {
   console: HTMLElement;
   diagnostics: HTMLElement;
   output: HTMLElement;
-  error: HTMLElement;
   statistics: HTMLElement;
   containers: HTMLElement[];
 
@@ -14,7 +16,6 @@ export class Console {
     this.console = elements.console;
     this.diagnostics = elements.diagnostics;
     this.output = elements.output;
-    this.error = elements.error;
     this.statistics = elements.statistics;
 
     this.containers = [...this.console.querySelectorAll<HTMLElement>(".container")];
@@ -40,6 +41,14 @@ export class Console {
     }
   }
 
+  clear() {
+    this.update(() => {
+      this.diagnostics.textContent = "";
+      this.statistics.textContent = "";
+      this.output.textContent = "";
+    });
+  }
+
   showLoading(content: string) {
     this.showDiagnostics([[{
       color: null,
@@ -47,15 +56,6 @@ export class Console {
       underline: false,
       content,
     }]]);
-  }
-
-  clear() {
-    this.update(() => {
-      this.diagnostics.textContent = "";
-      this.statistics.textContent = "";
-      this.output.textContent = "";
-      this.error.textContent = "";
-    });
   }
 
   showDiagnostics(diag_lines: Diag[][]) {
@@ -86,20 +86,15 @@ export class Console {
     });
   }
 
-  showStatistics(stats: string) {
+  showFlags(flags: string) {
     this.update(() => {
-      this.statistics.textContent = stats.trim();
+      this.statistics.prepend(flags + "\n\n");
     });
   }
 
-  showFlags(flags: string) {
+  showStatistics(stats: string) {
     this.update(() => {
-      if (flags.length > 0) {
-        if (this.error.children.length > 0) {
-          this.error.append("\n\n");
-        }
-        this.error.append(flags);
-      }
+      this.statistics.textContent = stats.trim();
     });
   }
 

@@ -13,6 +13,8 @@ defineWorker<API>({
     const flags = await runtime.runNets(debugHint, nets, (stats: string, output: string) => {
       self.postMessage(["output", stats, output]);
     });
-    self.postMessage(["flags", flags]);
+    if (flags.length > 0) {
+      self.postMessage(["flags", flags]);
+    }
   },
 });
