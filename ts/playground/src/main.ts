@@ -28,7 +28,10 @@ class Playground {
     this.stopButton = this.createActionButton("Stop", "Ctrl/Cmd+\\", () => this.stop());
     this.shareButton = document.querySelector("#share")!;
 
-    this.editor = new Editor(document.querySelector("#editor")!);
+    this.editor = new Editor(
+      document.querySelector("#editor")!,
+      (diags) => this.console.showDiagnostics(diags),
+    );
     this.console = new Console({
       console: document.querySelector("#console")!,
       diagnostics: document.querySelector("#diagnostics")!,

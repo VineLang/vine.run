@@ -1,16 +1,12 @@
 use std::{collections::HashMap, path::PathBuf};
 
-use ivy::{ast::Nets, optimize::Optimizer};
-use serde::Serialize;
+use ivy::optimize::Optimizer;
 use vine::{
   compiler::Compiler,
   components::loader::{FileId, Loader},
-  structures::{
-    ast::Ident,
-    checkpoint::Checkpoint,
-    diag::{Color, DiagSpan},
-  },
+  structures::{ast::Ident, checkpoint::Checkpoint},
 };
+use vine_lsp::PlaygroundDiagSpan;
 use vine_util::idx::IdxVec;
 use wasm_bindgen::prelude::{JsValue, wasm_bindgen};
 
@@ -41,8 +37,7 @@ impl PlaygroundCompiler {
   }
 
   pub fn diags(&self) -> JsValue {
-    let diag_lines: Vec<Vec<Diag>> =
-      self.compiler.format_diags().map(|line| line.into_iter().map(Diag::from).collect()).collect();
+    let diag_lines = PlaygroundDiagSpan::from_diags(self.compiler.format_diags());
 
     serde_wasm_bindgen::to_value(&diag_lines).unwrap()
   }
@@ -84,30 +79,5 @@ impl PlaygroundCompiler {
     Optimizer::default().optimize(&mut nets, &[]);
 
     Some(nets.to_string())
-  }
-}
-
-#[derive(Serialize)]
-pub struct Diag {
-  pub color: Option<&'static str>,
-  pub underline: bool,
-  pub bold: bool,
-  pub content: String,
-}
-
-impl<'a> From<DiagSpan<'a>> for Diag {
-  fn from(diag_span: DiagSpan) -> Self {
-    let color = diag_span.color.map(|color| match color {
-      Color::Grey => "grey",
-      Color::Red => "red",
-      Color::Yellow => "yellow",
-      Color::Green => "green",
-    });
-    Self {
-      color,
-      underline: diag_span.underline,
-      bold: diag_span.bold,
-      content: diag_span.content.into_owned(),
-    }
   }
 }

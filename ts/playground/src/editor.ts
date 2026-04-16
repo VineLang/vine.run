@@ -5,10 +5,13 @@ import { EditorState } from "@codemirror/state";
 import { drawSelection, EditorView, keymap, lineNumbers, type ViewUpdate } from "@codemirror/view";
 import { Tree } from "web-tree-sitter";
 import { Syntax, syntaxExtension } from "./syntax.ts";
+import { type Diag } from "./workers/compiler.ts";
 import { consumeWorker } from "./workers/lib.ts";
 import { type API as LSP } from "./workers/lsp.ts";
 
-function lspClient(): LSPClient {
+type DiagHandler = (diagLines: Diag[][]) => void;
+
+function lspClient(onDiagnostics: DiagHandler): LSPClient {
   type Handler = (msg: string) => void;
 
   const handlers = new Set<Handler>();
@@ -35,7 +38,15 @@ function lspClient(): LSPClient {
       handlers.delete(handler);
     },
   };
-  return new LSPClient({ extensions: languageServerExtensions() }).connect(transport);
+  return new LSPClient({
+    extensions: languageServerExtensions(),
+    notificationHandlers: {
+      "$vine/playgroundDiagnostics": (_client, diagLines) => {
+        onDiagnostics(diagLines);
+        return false;
+      },
+    },
+  }).connect(transport);
 }
 
 export class Editor {
@@ -43,7 +54,7 @@ export class Editor {
   syntax?: Syntax;
   tree: Tree | null;
 
-  constructor(parent: HTMLElement) {
+  constructor(parent: HTMLElement, onDiagnostics: DiagHandler) {
     const state = EditorState.create({
       extensions: [
         drawSelection(),
@@ -56,7 +67,7 @@ export class Editor {
           indentWithTab,
         ]),
         EditorState.allowMultipleSelections.of(true),
-        lspClient().plugin("file:///play.vi"),
+        lspClient(onDiagnostics).plugin("file:///play.vi"),
         syntaxExtension,
         EditorView.updateListener.of(async (update: ViewUpdate) => await this.onUpdate(update)),
       ],
