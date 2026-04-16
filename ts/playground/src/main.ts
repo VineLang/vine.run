@@ -47,11 +47,22 @@ class Playground {
   }
 
   async initialize() {
-    await this.editor.initialize();
+    await Promise.all([
+      this.editor.initialize(),
+      this.compileRoot(),
+    ]);
     this.initExamples();
-    await this.compileRoot();
-    this.addKeyEvents();
+    this.initEventListeners();
     this.initControls();
+  }
+
+  async compileRoot() {
+    this.console.showLoading("Compiling root...");
+    const start = performance.now();
+    await this.compiler.compileRoot();
+    const end = performance.now();
+    const elapsed = ((end - start) / 1000).toFixed(2);
+    this.console.showLoading(`Compiled root in ${elapsed} seconds.`);
   }
 
   initExamples() {
@@ -65,16 +76,7 @@ class Playground {
     });
   }
 
-  async compileRoot() {
-    this.console.showLoading("Compiling root...");
-    const start = performance.now();
-    await this.compiler.compileRoot();
-    const end = performance.now();
-    const elapsed = ((end - start) / 1000).toFixed(2);
-    this.console.showLoading(`Compiled root in ${elapsed} seconds.`);
-  }
-
-  addKeyEvents() {
+  initEventListeners() {
     document.addEventListener("keydown", (event) => {
       const ctrl = event.ctrlKey || event.metaKey;
       if (ctrl && event.key == "Enter") {
@@ -86,6 +88,20 @@ class Playground {
         this.stopButton.click();
       }
     }, true);
+  }
+
+  initControls() {
+    document.querySelector<HTMLDivElement>("#controls")!.style.visibility = "visible";
+    this.setRunControls();
+    this.shareButton.addEventListener("click", async () => {
+      const content = this.editor.files().play;
+      const body = `${SHARE_VERSION}\n${content}`;
+      const { key: _ } = await fetch("https://api.vine.run", {
+        method: "POST",
+        headers: { "Vine-Play": "1" },
+        body,
+      }).then(res => res.json());
+    });
   }
 
   async run() {
@@ -147,34 +163,16 @@ class Playground {
     return button;
   }
 
-  setButton(button: HTMLButtonElement) {
-    document.getElementById("action")!.replaceWith(button);
-  }
-
-  initControls() {
-    document.querySelector<HTMLDivElement>("#controls")!.style.visibility = "visible";
-    this.setRunControls();
-    this.shareButton.addEventListener("click", async () => {
-      const content = this.editor.files().play;
-      const body = `${SHARE_VERSION}\n${content}`;
-      const { key: _ } = await fetch("https://api.vine.run", {
-        method: "POST",
-        headers: { "Vine-Play": "1" },
-        body,
-      }).then(res => res.json());
-    });
-  }
-
   setRunControls() {
     this.breadthFirst.disabled = false;
     this.debug.disabled = false;
-    this.setButton(this.runButton);
+    document.getElementById("action")!.replaceWith(this.runButton);
   }
 
   setStopControls() {
     this.breadthFirst.disabled = true;
     this.debug.disabled = true;
-    this.setButton(this.stopButton);
+    document.getElementById("action")!.replaceWith(this.stopButton);
   }
 }
 
