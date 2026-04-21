@@ -16,6 +16,9 @@ class Playground {
 
   backend: WebWorker<Backend>;
   runtime?: WebWorker<Runtime>;
+
+  compiled: Promise<boolean>;
+  setCompiled: (compiled: boolean) => void;
   runId: number;
 
   editor: Editor;
@@ -34,11 +37,15 @@ class Playground {
         type: "module",
       }),
     );
+
+    this.compiled = new Promise(() => {});
+    this.setCompiled = () => {};
     this.runId = 0;
 
     this.editor = new Editor(
       document.querySelector("#editor")!,
       this.backend,
+      () => this.onChange(),
     );
     this.console = new Console({
       console: document.querySelector("#console")!,
@@ -71,6 +78,7 @@ class Playground {
       if (tag === "compiled") {
         this.runButton.disabled = !success;
         this.console.showDiagnostics(diags);
+        this.setCompiled(success);
       }
     });
 
@@ -108,7 +116,15 @@ class Playground {
     });
   }
 
+  onChange() {
+    this.compiled = new Promise(r => this.setCompiled = r);
+  }
+
   async run() {
+    if (!await this.compiled) {
+      return;
+    }
+
     this.console.clear();
     const runId = ++this.runId;
 

@@ -39,8 +39,9 @@ export class Editor {
   view: EditorView;
   syntax?: Syntax;
   lsp: LSPPlugin;
+  onChange: () => void;
 
-  constructor(parent: HTMLElement, backend: WebWorker<Backend>) {
+  constructor(parent: HTMLElement, backend: WebWorker<Backend>, onChange: () => void) {
     const state = EditorState.create({
       extensions: [
         drawSelection(),
@@ -60,6 +61,7 @@ export class Editor {
     });
     this.view = new EditorView({ state, parent });
     this.lsp = LSPPlugin.get(this.view)!;
+    this.onChange = onChange;
   }
 
   async initialize() {
@@ -75,6 +77,7 @@ export class Editor {
     if (!update.docChanged) {
       return;
     }
+    this.onChange();
     const { effects } = this.syntax!.effects(
       update.state.doc.toString(),
     );
