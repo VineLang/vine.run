@@ -1,6 +1,6 @@
 import { Console } from "./console.ts";
 import { Editor } from "./editor.ts";
-import { type API as Compiler } from "./workers/compiler.ts";
+import { type API as Backend } from "./workers/backend.ts";
 import { consumeWorker, type WebWorker } from "./workers/lib.ts";
 import { type API as Runtime } from "./workers/runtime.ts";
 
@@ -14,11 +14,12 @@ class Playground {
   stopButton: HTMLButtonElement;
   shareButton: HTMLButtonElement;
 
-  editor: Editor;
-  console: Console;
-  compiler: WebWorker<Compiler>;
+  backend: WebWorker<Backend>;
   runtime?: WebWorker<Runtime>;
   runId: number;
+
+  editor: Editor;
+  console: Console;
 
   constructor() {
     this.examples = document.querySelector("#examples")!;
@@ -28,9 +29,16 @@ class Playground {
     this.stopButton = this.createActionButton("Stop", "Ctrl/Cmd+\\", () => this.stop());
     this.shareButton = document.querySelector("#share")!;
 
+    this.backend = consumeWorker(
+      new Worker(new URL("./workers/backend.ts", import.meta.url), {
+        type: "module",
+      }),
+    );
+    this.runId = 0;
+
     this.editor = new Editor(
       document.querySelector("#editor")!,
-      (diags) => this.console.showDiagnostics(diags),
+      this.backend,
     );
     this.console = new Console({
       console: document.querySelector("#console")!,
@@ -38,31 +46,13 @@ class Playground {
       output: document.querySelector("#output")!,
       statistics: document.querySelector("#statistics")!,
     });
-    this.compiler = consumeWorker(
-      new Worker(new URL("./workers/compiler.ts", import.meta.url), {
-        type: "module",
-      }),
-    );
-    this.runId = 0;
   }
 
   async initialize() {
-    await Promise.all([
-      this.editor.initialize(),
-      this.compileRoot(),
-    ]);
+    await this.editor.initialize(),
     this.initExamples();
     this.initEventListeners();
     this.initControls();
-  }
-
-  async compileRoot() {
-    this.console.showLoading("Compiling root...");
-    const start = performance.now();
-    await this.compiler.compileRoot();
-    const end = performance.now();
-    const elapsed = ((end - start) / 1000).toFixed(2);
-    this.console.showLoading(`Compiled root in ${elapsed} seconds.`);
   }
 
   initExamples() {
@@ -77,6 +67,13 @@ class Playground {
   }
 
   initEventListeners() {
+    this.backend.worker.addEventListener("message", ({ data: [tag, success, diags] }) => {
+      if (tag === "compiled") {
+        this.runButton.disabled = !success;
+        this.console.showDiagnostics(diags);
+      }
+    });
+
     document.addEventListener("keydown", (event) => {
       const ctrl = event.ctrlKey || event.metaKey;
       if (ctrl && event.key == "Enter") {
@@ -93,6 +90,13 @@ class Playground {
   initControls() {
     document.querySelector<HTMLDivElement>("#controls")!.style.visibility = "visible";
     this.setRunControls();
+
+    this.debug.addEventListener("click", async () => {
+      // Force recompilation of playground file(s) with debug enabled/disabled.
+      await this.backend.debug(this.debug.checked);
+      this.editor.didChange();
+    });
+
     this.shareButton.addEventListener("click", async () => {
       const content = this.editor.files().play;
       const body = `${SHARE_VERSION}\n${content}`;
@@ -106,18 +110,13 @@ class Playground {
 
   async run() {
     this.console.clear();
-    this.console.showLoading("Compiling playground...");
-    const files = this.editor.files();
     const runId = ++this.runId;
 
-    const nets = await this.compiler.compileFiles(this.debug.checked, files);
-    const diags = await this.compiler.diags();
-
-    this.stop();
-    this.setStopControls();
-    this.console.showDiagnostics(diags);
+    const nets = await this.backend.nets();
 
     if (nets && runId === this.runId) {
+      this.stop();
+      this.setStopControls();
       this.newRuntime();
       await this.runtime!.runNets(!this.debug.checked, this.breadthFirst.checked, nets);
       this.runtime!.terminate();

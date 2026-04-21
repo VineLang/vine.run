@@ -1,26 +1,17 @@
 import { defaultKeymap, history, historyKeymap, indentWithTab } from "@codemirror/commands";
-import { languageServerExtensions, LSPClient, type Transport } from "@codemirror/lsp-client";
+import { languageServerExtensions, LSPClient, type Transport, LSPPlugin } from "@codemirror/lsp-client";
 import { searchKeymap } from "@codemirror/search";
 import { EditorState } from "@codemirror/state";
 import { drawSelection, EditorView, keymap, lineNumbers, type ViewUpdate } from "@codemirror/view";
-import { Tree } from "web-tree-sitter";
 import { Syntax, syntaxExtension } from "./syntax.ts";
-import { type Diag } from "./workers/compiler.ts";
-import { consumeWorker } from "./workers/lib.ts";
-import { type API as LSP } from "./workers/lsp.ts";
+import { type WebWorker } from "./workers/lib.ts";
+import { type API as Backend } from "./workers/backend.ts";
 
-type DiagHandler = (diagLines: Diag[][]) => void;
-
-function lspClient(onDiagnostics: DiagHandler): LSPClient {
+function lspClient(backend: WebWorker<Backend>): LSPClient {
   type Handler = (msg: string) => void;
 
   const handlers = new Set<Handler>();
-  const lsp = consumeWorker<LSP>(
-    new Worker(new URL("./workers/lsp.ts", import.meta.url), {
-      type: "module",
-    }),
-  );
-  lsp.worker.addEventListener("message", ({ data: [tag, msg] }) => {
+  backend.worker.addEventListener("message", ({ data: [tag, msg] }) => {
     if (tag === "lsp") {
       for (const handler of handlers) {
         handler(msg);
@@ -29,7 +20,7 @@ function lspClient(onDiagnostics: DiagHandler): LSPClient {
   });
   const transport: Transport = {
     send(message: string) {
-      lsp.send(message);
+      backend.sendLspMessage(message);
     },
     subscribe(handler: Handler) {
       handlers.add(handler);
@@ -39,22 +30,17 @@ function lspClient(onDiagnostics: DiagHandler): LSPClient {
     },
   };
   return new LSPClient({
+    timeout: 60 * 1000, // ms
     extensions: languageServerExtensions(),
-    notificationHandlers: {
-      "$vine/playgroundDiagnostics": (_client, diagLines) => {
-        onDiagnostics(diagLines);
-        return false;
-      },
-    },
   }).connect(transport);
 }
 
 export class Editor {
   view: EditorView;
   syntax?: Syntax;
-  tree: Tree | null;
+  lsp: LSPPlugin;
 
-  constructor(parent: HTMLElement, onDiagnostics: DiagHandler) {
+  constructor(parent: HTMLElement, backend: WebWorker<Backend>) {
     const state = EditorState.create({
       extensions: [
         drawSelection(),
@@ -67,13 +53,13 @@ export class Editor {
           indentWithTab,
         ]),
         EditorState.allowMultipleSelections.of(true),
-        lspClient(onDiagnostics).plugin("file:///play.vi"),
+        lspClient(backend).plugin("file:///play.vi"),
         syntaxExtension,
         EditorView.updateListener.of(async (update: ViewUpdate) => await this.onUpdate(update)),
       ],
     });
     this.view = new EditorView({ state, parent });
-    this.tree = null;
+    this.lsp = LSPPlugin.get(this.view)!;
   }
 
   async initialize() {
@@ -89,11 +75,22 @@ export class Editor {
     if (!update.docChanged) {
       return;
     }
-    const { effects, tree } = this.syntax!.effects(
+    const { effects } = this.syntax!.effects(
       update.state.doc.toString(),
     );
-    this.tree = tree;
     update.view.dispatch({ effects });
+  }
+
+  // Forces a `textDocument/didChange` request to be sent to the LSP.
+  didChange() {
+    this.view.dispatch({
+      changes: {
+        from: 0,
+        to: this.view.state.doc.length,
+        insert: this.view.state.doc.toString(),
+      },
+    });
+    this.lsp.client.sync();
   }
 
   load(example: string) {

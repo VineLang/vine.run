@@ -2,7 +2,11 @@ use std::path::PathBuf;
 
 use js_sys::Function;
 use tokio::io::{AsyncBufReadExt, AsyncReadExt, AsyncWriteExt, BufReader, DuplexStream};
-use vine::{compiler::Compiler, components::loader::FileId};
+use vine::{
+  compiler::Compiler,
+  components::loader::FileId,
+  structures::diag::{Color as DiagColor, DiagSpan},
+};
 use vine_util::idx::IdxVec;
 use wasm_bindgen::{JsValue, prelude::wasm_bindgen};
 
@@ -35,7 +39,8 @@ impl PlaygroundLsp {
       vine_lsp::lsp(
         self.compiler,
         self.file_paths,
-        vec!["/play.vi".to_owned()],
+        Some("/play.vi".into()),
+        vec![],
         input_rx,
         output_tx,
       )
@@ -89,4 +94,41 @@ impl LspTransport {
     self.input_tx.write_all(content_length.as_bytes()).await.unwrap();
     self.input_tx.write_all(msg.as_bytes()).await.unwrap();
   }
+}
+
+pub struct PlaygroundDiagSpan {
+  pub color: Option<PlaygroundDiagColor>,
+  pub underline: bool,
+  pub bold: bool,
+  pub content: String,
+}
+
+impl PlaygroundDiagSpan {
+  pub fn from_diags<'a>(diag_lines: impl Iterator<Item = Vec<DiagSpan<'a>>>) -> Vec<Vec<Self>> {
+    diag_lines.map(|line| line.into_iter().map(PlaygroundDiagSpan::from).collect()).collect()
+  }
+}
+
+impl<'a> From<DiagSpan<'a>> for PlaygroundDiagSpan {
+  fn from(diag_span: DiagSpan) -> Self {
+    let color = diag_span.color.map(|color| match color {
+      DiagColor::Grey => PlaygroundDiagColor::Grey,
+      DiagColor::Red => PlaygroundDiagColor::Red,
+      DiagColor::Yellow => PlaygroundDiagColor::Yellow,
+      DiagColor::Green => PlaygroundDiagColor::Green,
+    });
+    Self {
+      color,
+      underline: diag_span.underline,
+      bold: diag_span.bold,
+      content: diag_span.content.into_owned(),
+    }
+  }
+}
+
+pub enum PlaygroundDiagColor {
+  Grey,
+  Red,
+  Yellow,
+  Green,
 }

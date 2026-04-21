@@ -415,12 +415,12 @@ checksum = "8f42a60cbdf9a97f5d2305f08a87dc4e09308d1276d28c869c684d7777685682"
 [[package]]
 name = "ivm"
 version = "0.0.0"
-source = "git+https://github.com/VineLang/vine.git?branch=enricozb%2Fplayground#408b922550e4ed1daa390434ee62689d79900673"
+source = "git+https://github.com/VineLang/vine.git?branch=enricozb%2Fplayground#916f8435e7e4b95058ab63c60a49e28bb5e34d9f"
 
 [[package]]
 name = "ivy"
 version = "0.0.0"
-source = "git+https://github.com/VineLang/vine.git?branch=enricozb%2Fplayground#408b922550e4ed1daa390434ee62689d79900673"
+source = "git+https://github.com/VineLang/vine.git?branch=enricozb%2Fplayground#916f8435e7e4b95058ab63c60a49e28bb5e34d9f"
 dependencies = [
  "indexmap",
  "ivm",
@@ -589,6 +589,7 @@ dependencies = [
  "ivm",
  "ivy",
  "js-sys",
+ "serde",
  "serde-wasm-bindgen",
  "tokio",
  "tokio-stream",
@@ -1041,7 +1042,7 @@ checksum = "0b928f33d975fc6ad9f86c8f283853ad26bdd5b10b7f1542aa2fa15e2289105a"
 [[package]]
 name = "vine"
 version = "0.0.0"
-source = "git+https://github.com/VineLang/vine.git?branch=enricozb%2Fplayground#408b922550e4ed1daa390434ee62689d79900673"
+source = "git+https://github.com/VineLang/vine.git?branch=enricozb%2Fplayground#916f8435e7e4b95058ab63c60a49e28bb5e34d9f"
 dependencies = [
  "class",
  "ivm",
@@ -1053,11 +1054,10 @@ dependencies = [
 [[package]]
 name = "vine-lsp"
 version = "0.0.0"
-source = "git+https://github.com/VineLang/vine.git?branch=enricozb%2Fplayground#408b922550e4ed1daa390434ee62689d79900673"
+source = "git+https://github.com/VineLang/vine.git?branch=enricozb%2Fplayground#916f8435e7e4b95058ab63c60a49e28bb5e34d9f"
 dependencies = [
  "futures",
  "glob",
- "serde",
  "tokio",
  "tower-lsp",
  "vine",
@@ -1067,7 +1067,7 @@ dependencies = [
 [[package]]
 name = "vine-util"
 version = "0.0.0"
-source = "git+https://github.com/VineLang/vine.git?branch=enricozb%2Fplayground#408b922550e4ed1daa390434ee62689d79900673"
+source = "git+https://github.com/VineLang/vine.git?branch=enricozb%2Fplayground#916f8435e7e4b95058ab63c60a49e28bb5e34d9f"
 dependencies = [
  "hashbrown 0.14.5",
  "nohash-hasher",

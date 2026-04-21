@@ -1,4 +1,4 @@
-import { type Diag } from "./workers/compiler.ts";
+import { type Diag } from "./workers/backend.ts";
 
 export type ConsoleElements = Pick<
   Console,
