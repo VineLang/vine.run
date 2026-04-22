@@ -74,8 +74,8 @@ export class Editor {
     this.load("hello_world");
   }
 
-  files(): Record<string, string> {
-    return { play: this.view.state.doc.toString() };
+  content(): string {
+    return this.view.state.doc.toString();
   }
 
   async onUpdate(update: ViewUpdate) {

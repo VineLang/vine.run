@@ -78,7 +78,7 @@ class Playground {
         this.runButton.disabled = !success;
         this.console.showDiagnostics(diags);
         this.setCompiled(success);
-        document.querySelector("body").classList.toggle("progress", false);
+        document.querySelector("body")!.classList.toggle("progress", false);
       }
     });
 
@@ -106,7 +106,7 @@ class Playground {
     });
 
     this.shareButton.addEventListener("click", async () => {
-      const content = this.editor.files().play;
+      const content = this.editor.content();
       const body = `${SHARE_VERSION}\n${content}`;
       const { key: _ } = await fetch("https://api.vine.run", {
         method: "POST",
@@ -118,7 +118,7 @@ class Playground {
 
   onChange() {
     this.compiled = new Promise(r => this.setCompiled = r);
-    document.querySelector("body").classList.toggle("progress", true);
+    document.querySelector("body")!.classList.toggle("progress", true);
   }
 
   async run() {
