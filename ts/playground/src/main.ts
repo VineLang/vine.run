@@ -1,6 +1,6 @@
 import { Console } from "./console.ts";
 import { Editor } from "./editor.ts";
-import { LatestValue } from "./util.ts";
+import { LatestValue, getHashFiles, setHashFiles } from "./util.ts";
 import { type API as Backend } from "./workers/backend.ts";
 import { consumeWorker, type WebWorker } from "./workers/lib.ts";
 import { type API as Runtime } from "./workers/runtime.ts";
@@ -55,7 +55,14 @@ class Playground {
   }
 
   async initialize() {
-    await this.editor.initialize(), this.initExamples();
+    await this.editor.initialize();
+    const files = getHashFiles();
+    if (files !== null && "play" in files) {
+      this.editor.load(files.play);
+    } else {
+      this.editor.loadExample("hello_world");
+    }
+    this.initExamples();
     this.initEventListeners();
     this.initControls();
   }
@@ -65,7 +72,7 @@ class Playground {
     this.examples.addEventListener("change", (event: Event) => {
       const example = event.target as HTMLSelectElement;
       if (example.value) {
-        this.editor.load(example.value);
+        this.editor.loadExample(example.value);
         this.examples.value = "";
       }
     });
@@ -118,6 +125,7 @@ class Playground {
   onChange() {
     this.compiled.push();
     document.querySelector("body")!.classList.toggle("progress", true);
+    setHashFiles({ play: this.editor.content() });
   }
 
   async run() {

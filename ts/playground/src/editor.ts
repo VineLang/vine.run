@@ -71,7 +71,6 @@ export class Editor {
 
   async initialize() {
     this.syntax = await Syntax.init();
-    this.load("hello_world");
   }
 
   content(): string {
@@ -101,14 +100,18 @@ export class Editor {
     this.lsp.client.sync();
   }
 
-  load(example: string) {
+  load(content: string) {
     this.view.dispatch({
       changes: {
         from: 0,
         to: this.view.state.doc.length,
-        insert: EXAMPLES[example as keyof typeof EXAMPLES],
+        insert: content,
       },
     });
+  }
+
+  loadExample(example: string) {
+    this.load(EXAMPLES[example as keyof typeof EXAMPLES]);
   }
 }
 
