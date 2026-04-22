@@ -1,5 +1,6 @@
 import { Console } from "./console.ts";
 import { Editor } from "./editor.ts";
+import { LatestValue } from "./util.ts";
 import { type API as Backend } from "./workers/backend.ts";
 import { consumeWorker, type WebWorker } from "./workers/lib.ts";
 import { type API as Runtime } from "./workers/runtime.ts";
@@ -17,8 +18,7 @@ class Playground {
   backend: WebWorker<Backend>;
   runtime?: WebWorker<Runtime>;
 
-  compiled: Promise<boolean>;
-  setCompiled: (compiled: boolean) => void;
+  compiled: LatestValue<boolean>;
   runId: number;
 
   editor: Editor;
@@ -38,8 +38,7 @@ class Playground {
       }),
     );
 
-    this.compiled = new Promise(() => {});
-    this.setCompiled = () => {};
+    this.compiled = new LatestValue();
     this.runId = 0;
 
     this.editor = new Editor(
@@ -77,7 +76,7 @@ class Playground {
       if (tag === "compiled") {
         this.runButton.disabled = !success;
         this.console.showDiagnostics(diags);
-        this.setCompiled(success);
+        this.compiled.set(success);
         document.querySelector("body")!.classList.toggle("progress", false);
       }
     });
@@ -117,12 +116,14 @@ class Playground {
   }
 
   onChange() {
-    this.compiled = new Promise(r => this.setCompiled = r);
+    this.compiled.push();
     document.querySelector("body")!.classList.toggle("progress", true);
   }
 
   async run() {
-    if (!await this.compiled) {
+    this.editor.lsp.client.sync();
+
+    if (!await this.compiled.get()) {
       return;
     }
 
