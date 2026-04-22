@@ -56,8 +56,7 @@ class Playground {
   }
 
   async initialize() {
-    await this.editor.initialize(),
-    this.initExamples();
+    await this.editor.initialize(), this.initExamples();
     this.initEventListeners();
     this.initControls();
   }
@@ -79,6 +78,7 @@ class Playground {
         this.runButton.disabled = !success;
         this.console.showDiagnostics(diags);
         this.setCompiled(success);
+        document.querySelector("body").classList.toggle("progress", false);
       }
     });
 
@@ -118,6 +118,7 @@ class Playground {
 
   onChange() {
     this.compiled = new Promise(r => this.setCompiled = r);
+    document.querySelector("body").classList.toggle("progress", true);
   }
 
   async run() {

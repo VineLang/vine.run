@@ -1,11 +1,16 @@
 import { defaultKeymap, history, historyKeymap, indentWithTab } from "@codemirror/commands";
-import { languageServerExtensions, LSPClient, type Transport, LSPPlugin } from "@codemirror/lsp-client";
+import {
+  languageServerExtensions,
+  LSPClient,
+  LSPPlugin,
+  type Transport,
+} from "@codemirror/lsp-client";
 import { searchKeymap } from "@codemirror/search";
 import { EditorState } from "@codemirror/state";
 import { drawSelection, EditorView, keymap, lineNumbers, type ViewUpdate } from "@codemirror/view";
 import { Syntax, syntaxExtension } from "./syntax.ts";
-import { type WebWorker } from "./workers/lib.ts";
 import { type API as Backend } from "./workers/backend.ts";
+import { type WebWorker } from "./workers/lib.ts";
 
 function lspClient(backend: WebWorker<Backend>): LSPClient {
   type Handler = (msg: string) => void;

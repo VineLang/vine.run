@@ -57,6 +57,10 @@ body {
   flex-direction: column;
 
   font-family: var(--sans);
+
+  &.progress {
+    cursor: progress;
+  }
 }
 
 pre, code {
