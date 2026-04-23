@@ -58,6 +58,14 @@ export class Console {
     }]]);
   }
 
+  showCompiled() {
+    this.update(() => {
+      const span = document.createElement("span");
+      span.textContent = "Compiled, and ready to run.";
+      this.diagnostics.replaceChildren(span);
+    });
+  }
+
   showDiagnostics(diag_lines: Diag[][]) {
     this.update(() => {
       this.diagnostics.textContent = "";

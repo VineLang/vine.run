@@ -1,6 +1,6 @@
 import { Console } from "./console.ts";
 import { Editor } from "./editor.ts";
-import { LatestValue, getHashFiles, setHashFiles } from "./util.ts";
+import { getHashFiles, LatestValue, setHashFiles } from "./util.ts";
 import { type API as Backend } from "./workers/backend.ts";
 import { consumeWorker, type WebWorker } from "./workers/lib.ts";
 import { type API as Runtime } from "./workers/runtime.ts";
@@ -81,8 +81,11 @@ class Playground {
   initEventListeners() {
     this.backend.worker.addEventListener("message", ({ data: [tag, success, diags] }) => {
       if (tag === "compiled") {
-        this.runButton.disabled = !success;
-        this.console.showDiagnostics(diags);
+        if (diags.length > 0) {
+          this.console.showDiagnostics(diags);
+        } else {
+          this.console.showCompiled();
+        }
         this.compiled.set(success);
         document.querySelector("body")!.classList.toggle("progress", false);
       }
