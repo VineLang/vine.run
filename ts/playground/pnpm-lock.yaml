@@ -29,6 +29,9 @@ importers:
       codemirror:
         specifier: ^6.0.2
         version: 6.0.2
+      lz-string:
+        specifier: ^1.5.0
+        version: 1.5.0
       vite-plugin-top-level-await:
         specifier: ^1.6.0
         version: 1.6.0(rollup@4.59.0)(vite@7.3.1)
@@ -39,6 +42,9 @@ importers:
         specifier: ^0.26.6
         version: 0.26.6
     devDependencies:
+      '@types/lz-string':
+        specifier: ^1.5.0
+        version: 1.5.0
       typescript:
         specifier: ~5.9.3
         version: 5.9.3
@@ -455,6 +461,10 @@ packages:
   '@types/estree@1.0.8':
     resolution: {integrity: sha512-dWHzHa2WqEXI/O1E9OjrocMTKJl2mSrEolh1Iomrv6U+JuNwaHXsXx9bLu5gG7BUWFIN0skIQJQ/L1rIex4X6w==}
 
+  '@types/lz-string@1.5.0':
+    resolution: {integrity: sha512-s84fKOrzqqNCAPljhVyC5TjAo6BH4jKHw9NRNFNiRUY5QSgZCmVm5XILlWbisiKl+0OcS7eWihmKGS5akc2iQw==}
+    deprecated: This is a stub types definition. lz-string provides its own type definitions, so you do not need this installed.
+
   '@types/webworker@0.0.72':
     resolution: {integrity: sha512-m2SWYAkKDQcvT5zdfMRqyF3TLtwtlliUGr54zItoOpf1TMtbRYZ7femvCxN0dBgKe7B8gQZPMLPhR8nBLlKGcQ==}
 
@@ -482,6 +492,10 @@ packages:
     resolution: {integrity: sha512-5xoDfX+fL7faATnagmWPpbFtwh/R77WmMMqqHGS65C3vvB0YHrgF+B1YmZ3441tMj5n63k0212XNoJwzlhffQw==}
     engines: {node: ^8.16.0 || ^10.6.0 || >=11.0.0}
     os: [darwin]
+
+  lz-string@1.5.0:
+    resolution: {integrity: sha512-h5bgJWpxJNswbU7qCrV0tIKQCaS3blPDrqKWx+QxzuzL1zGUzij9XCWLrSLsJPu5t+eWA/ycetzYAO5IOMcWAQ==}
+    hasBin: true
 
   marked@15.0.12:
     resolution: {integrity: sha512-8dD6FusOQSrpv9Z1rdNMdlSgQOIP880DHqnohobOmYLElGEqAL/JvxvuxZO16r4HtjTlfPRDC1hbvxC9dPN2nA==}
@@ -879,6 +893,10 @@ snapshots:
 
   '@types/estree@1.0.8': {}
 
+  '@types/lz-string@1.5.0':
+    dependencies:
+      lz-string: 1.5.0
+
   '@types/webworker@0.0.72': {}
 
   codemirror@6.0.2:
@@ -928,6 +946,8 @@ snapshots:
 
   fsevents@2.3.3:
     optional: true
+
+  lz-string@1.5.0: {}
 
   marked@15.0.12: {}
 

@@ -84,7 +84,7 @@ class Playground {
         if (diags.length > 0) {
           this.console.showDiagnostics(diags);
         } else {
-          this.console.showCompiled();
+          this.console.showDiagnosticText("Compiled, and ready to run.");
         }
         this.compiled.set(success);
         document.querySelector("body")!.classList.toggle("progress", false);
@@ -117,11 +117,14 @@ class Playground {
     this.shareButton.addEventListener("click", async () => {
       const content = this.editor.content();
       const body = `${SHARE_VERSION}\n${content}`;
-      const { key: _ } = await fetch("https://api.vine.run", {
+      const { key } = await fetch("https://api.vine.run", {
         method: "POST",
         headers: { "Vine-Play": "1" },
         body,
       }).then(res => res.json());
+      const url = `${window.location.origin}${window.location.pathname}?play=${key}`;
+      await navigator.clipboard.writeText(url);
+      this.console.showDiagnosticText("Permalink copied to clipboard");
     });
   }
 

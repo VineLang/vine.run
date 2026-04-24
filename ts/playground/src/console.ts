@@ -49,19 +49,10 @@ export class Console {
     });
   }
 
-  showLoading(content: string) {
-    this.showDiagnostics([[{
-      color: null,
-      bold: false,
-      underline: false,
-      content,
-    }]]);
-  }
-
-  showCompiled() {
+  showDiagnosticText(content: string) {
     this.update(() => {
       const span = document.createElement("span");
-      span.textContent = "Compiled, and ready to run.";
+      span.textContent = content;
       this.diagnostics.replaceChildren(span);
     });
   }

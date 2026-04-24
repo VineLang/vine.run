@@ -1,3 +1,5 @@
+import { compressToEncodedURIComponent, decompressFromEncodedURIComponent } from "lz-string";
+
 export class LatestValue<T> {
   private resolvers: Array<(v: T) => void> = [];
   private current: Promise<T>;
@@ -39,15 +41,9 @@ export function getHashFiles(): Record<string, string> | null {
 }
 
 function encode(files: Record<string, string>): string {
-  const str = JSON.stringify(files);
-  const bytes = new TextEncoder().encode(str);
-  const binary = Array.from(bytes, b => String.fromCharCode(b)).join("");
-  return btoa(binary);
+  return compressToEncodedURIComponent(JSON.stringify(files));
 }
 
-function decode(b64: string): Record<string, string> {
-  const binary = atob(b64);
-  const bytes = Uint8Array.from(binary, c => c.charCodeAt(0));
-  const str = new TextDecoder().decode(bytes);
-  return JSON.parse(str);
+function decode(hash: string): Record<string, string> {
+  return JSON.parse(decompressFromEncodedURIComponent(hash));
 }
