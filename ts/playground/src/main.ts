@@ -87,7 +87,7 @@ class Playground {
           this.console.showDiagnosticText("Compiled, and ready to run.");
         }
         this.compiled.set(success);
-        document.querySelector("body")!.classList.toggle("progress", false);
+        document.querySelector("body")!.classList.remove("progress");
       }
     });
 
@@ -124,13 +124,13 @@ class Playground {
       }).then(res => res.json());
       const url = `${window.location.origin}${window.location.pathname}?play=${key}`;
       await navigator.clipboard.writeText(url);
-      this.console.showDiagnosticText("Permalink copied to clipboard");
+      this.shareButton.innerText = "Copied!";
     });
   }
 
   onChange() {
     this.compiled.push();
-    document.querySelector("body")!.classList.toggle("progress", true);
+    document.querySelector("body")!.classList.add("progress");
     setHashFiles({ play: this.editor.content() });
   }
 
@@ -191,6 +191,7 @@ class Playground {
     button.innerText = label;
     button.title = tooltip;
     button.addEventListener("click", onclick);
+    button.classList.add(label.toLowerCase());
     return button;
   }
 
