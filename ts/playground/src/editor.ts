@@ -40,6 +40,8 @@ function lspClient(backend: WebWorker<Backend>): LSPClient {
   }).connect(transport);
 }
 
+const CONTENT_VERSION = 0;
+
 export class Editor {
   view: EditorView;
   syntax?: Syntax;
@@ -73,8 +75,10 @@ export class Editor {
     this.syntax = await Syntax.init();
   }
 
-  content(): string {
-    return this.view.state.doc.toString();
+  versionedContent(): string {
+    const files = JSON.stringify({ play: this.view.state.doc.toString() });
+
+    return `${CONTENT_VERSION}\n${files}`;
   }
 
   async onUpdate(update: ViewUpdate) {
@@ -112,6 +116,19 @@ export class Editor {
 
   loadExample(example: string) {
     this.load(EXAMPLES[example as keyof typeof EXAMPLES]);
+  }
+
+  loadVersionedContent(content: string) {
+    const [version, json] = content.split("\n", 2);
+    switch (Number.parseInt(version!)) {
+      case 0:
+        const files = JSON.parse(json!);
+        this.load(files.play!);
+        break;
+
+      default:
+        throw `invalid version: ${version}`;
+    }
   }
 }
 

@@ -1,11 +1,9 @@
 import { Console } from "./console.ts";
 import { Editor } from "./editor.ts";
-import { getHashFiles, PromiseMap, setHashFiles } from "./util.ts";
+import { getUrlHashContent, PromiseMap, setUrlHashContent } from "./util.ts";
 import { type API as Backend } from "./workers/backend.ts";
 import { consumeWorker, type WebWorker } from "./workers/lib.ts";
 import { type API as Runtime } from "./workers/runtime.ts";
-
-const SHARE_VERSION = 0;
 
 class Playground {
   examples: HTMLSelectElement;
@@ -58,10 +56,10 @@ class Playground {
 
   async initialize() {
     await this.editor.initialize();
-    const files = getHashFiles();
-    if (files !== null && "play" in files) {
-      this.editor.load(files.play);
-    } else {
+    try {
+      this.editor.loadVersionedContent((await getUrlHashContent())!);
+    } catch (error) {
+      console.warn("Failed to load content from hash, loading hello world", error);
       this.editor.loadExample("hello_world");
     }
     this.initExamples();
@@ -83,11 +81,7 @@ class Playground {
   initEventListeners() {
     this.backend.worker.addEventListener("message", ({ data: [tag, version, success, diags] }) => {
       if (tag === "compiled") {
-        if (diags.length > 0) {
-          this.console.showDiagnostics(diags);
-        } else {
-          this.console.showDiagnostics("");
-        }
+        this.console.showDiagnostics(diags);
         this.compiled.set(version, success);
         document.querySelector("body")!.classList.remove("progress");
       }
@@ -117,21 +111,20 @@ class Playground {
     });
 
     this.shareButton.addEventListener("click", async () => {
-      const content = this.editor.content();
-      const body = `${SHARE_VERSION}\n${content}`;
+      const content = this.editor.versionedContent();
       const { key } = await fetch("https://api.vine.run", {
         method: "POST",
         headers: { "Vine-Play": "1" },
-        body,
+        body: content,
       }).then(res => res.json());
-      const url = `${window.location.origin}${window.location.pathname}?play=${key}`;
+      const url = `${window.location.origin}${window.location.pathname}#${key}`;
       await navigator.clipboard.writeText(url);
       this.shareButton.innerText = "Copied!";
     });
   }
 
   onChange() {
-    setHashFiles({ play: this.editor.content() });
+    setUrlHashContent(this.editor.versionedContent());
 
     if (this.pendingSync !== null) {
       clearTimeout(this.pendingSync);
@@ -148,8 +141,8 @@ class Playground {
     for (const file of this.editor.lsp.client.workspace.files) {
       this.editor.lsp.client.notification("textDocument/didSave", {
         textDocument: {
-          uri: file.uri
-        }
+          uri: file.uri,
+        },
       });
     }
   }

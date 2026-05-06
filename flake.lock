@@ -270,16 +270,15 @@
         "typsitter": "typsitter"
       },
       "locked": {
-        "lastModified": 1778065027,
-        "narHash": "sha256-usQ14DL+2ZB4yR6r/R9Ku3vdKXoRzKPEx2jziyKzeEw=",
+        "lastModified": 1777840472,
+        "narHash": "sha256-yvXN8Id7YOQ1OVEI0FIQG+hVk/odaIkteozaz1bqAi8=",
         "owner": "VineLang",
         "repo": "vine",
-        "rev": "dc61d16adc0bb1de0ec3570f9cf4814034e68cea",
+        "rev": "2065ec6199d5b872c67e00c1da2361035ded8e20",
         "type": "github"
       },
       "original": {
         "owner": "VineLang",
-        "ref": "enricozb/playground-hedera",
         "repo": "vine",
         "type": "github"
       }

@@ -30,26 +30,31 @@ export class PromiseMap<K, V> {
   }
 }
 
-export function setHashFiles(files: Record<string, string>) {
-  history.replaceState(null, "", "#" + encode(files));
+export function setUrlHashContent(content: string) {
+  history.replaceState(null, "", "#v" + encode(content));
 }
 
-export function getHashFiles(): Record<string, string> | null {
+export async function getUrlHashContent(): Promise<string | null> {
   const hash = window.location.hash.slice(1);
   if (!hash) {
     return null;
   }
-  try {
-    return decode(hash);
-  } catch {
-    return null;
+
+  if (hash.startsWith("v")) {
+    return decode(hash.slice(1));
   }
+
+  const res = await fetch(`https://api.vine.run/${hash}`, {
+    method: "GET",
+  });
+
+  return await res.text();
 }
 
-function encode(files: Record<string, string>): string {
-  return compressToEncodedURIComponent(JSON.stringify(files));
+function encode(content: string): string {
+  return compressToEncodedURIComponent(content);
 }
 
-function decode(hash: string): Record<string, string> {
-  return JSON.parse(decompressFromEncodedURIComponent(hash));
+function decode(hash: string): string {
+  return decompressFromEncodedURIComponent(hash);
 }
