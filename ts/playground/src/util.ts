@@ -1,26 +1,32 @@
 import { compressToEncodedURIComponent, decompressFromEncodedURIComponent } from "lz-string";
 
-export class LatestValue<T> {
-  private resolvers: Array<(v: T) => void> = [];
-  private current: Promise<T>;
+export class PromiseMap<K, V> {
+  private map: Map<K, Promise<V>>;
+  private resolvers: Map<K, (value: V) => void>;
 
   constructor() {
-    this.current = new Promise(r => this.resolvers.push(r));
+    this.map = new Map();
+    this.resolvers = new Map();
   }
 
-  push() {
-    this.current = new Promise(r => this.resolvers.push(r));
-  }
-
-  set(value: T): void {
-    for (const resolve of this.resolvers.splice(0)) {
-      resolve(value);
+  get(key: K): Promise<V> {
+    const value = this.map.get(key);
+    if (value) {
+      return value;
+    } else {
+      const promise = new Promise<V>(resolve => this.resolvers.set(key, resolve));
+      this.map.set(key, promise);
+      return promise;
     }
-    this.current = Promise.resolve(value);
   }
 
-  get(): Promise<T> {
-    return this.current;
+  set(key: K, value: V) {
+    const resolve = this.resolvers.get(key);
+    if (resolve) {
+      resolve(value);
+    } else {
+      this.map.set(key, new Promise(r => r(value)));
+    }
   }
 }
 

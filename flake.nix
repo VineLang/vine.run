@@ -1,6 +1,6 @@
 {
   inputs = {
-    vine.url = "github:VineLang/vine/enricozb/playground";
+    vine.url = "github:VineLang/vine/enricozb/playground-hedera";
     nixpkgs.follows = "vine/nixpkgs";
     flake-utils.follows = "vine/flake-utils";
     rust-overlay.follows = "vine/rust-overlay";

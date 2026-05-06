@@ -1,6 +1,6 @@
 import { Console } from "./console.ts";
 import { Editor } from "./editor.ts";
-import { getHashFiles, LatestValue, setHashFiles } from "./util.ts";
+import { getHashFiles, PromiseMap, setHashFiles } from "./util.ts";
 import { type API as Backend } from "./workers/backend.ts";
 import { consumeWorker, type WebWorker } from "./workers/lib.ts";
 import { type API as Runtime } from "./workers/runtime.ts";
@@ -18,8 +18,9 @@ class Playground {
   backend: WebWorker<Backend>;
   runtime?: WebWorker<Runtime>;
 
-  compiled: LatestValue<boolean>;
+  compiled: PromiseMap<number, boolean>;
   runId: number;
+  pendingSync: number | null;
 
   editor: Editor;
   console: Console;
@@ -38,8 +39,9 @@ class Playground {
       }),
     );
 
-    this.compiled = new LatestValue();
+    this.compiled = new PromiseMap();
     this.runId = 0;
+    this.pendingSync = null;
 
     this.editor = new Editor(
       document.querySelector("#editor")!,
@@ -79,14 +81,14 @@ class Playground {
   }
 
   initEventListeners() {
-    this.backend.worker.addEventListener("message", ({ data: [tag, success, diags] }) => {
+    this.backend.worker.addEventListener("message", ({ data: [tag, version, success, diags] }) => {
       if (tag === "compiled") {
         if (diags.length > 0) {
           this.console.showDiagnostics(diags);
         } else {
-          this.console.showDiagnosticText("Compiled, and ready to run.");
+          this.console.showDiagnostics("");
         }
-        this.compiled.set(success);
+        this.compiled.set(version, success);
         document.querySelector("body")!.classList.remove("progress");
       }
     });
@@ -129,15 +131,33 @@ class Playground {
   }
 
   onChange() {
-    this.compiled.push();
-    document.querySelector("body")!.classList.add("progress");
     setHashFiles({ play: this.editor.content() });
+
+    if (this.pendingSync !== null) {
+      clearTimeout(this.pendingSync);
+    }
+    this.pendingSync = setTimeout(() => {
+      this.pendingSync = null;
+      this.sync();
+    }, 100);
+  }
+
+  sync() {
+    this.editor.lsp.client.sync();
+    // TODO(enricozb): only handles single file
+    for (const file of this.editor.lsp.client.workspace.files) {
+      this.editor.lsp.client.notification("textDocument/didSave", {
+        textDocument: {
+          uri: file.uri
+        }
+      });
+    }
   }
 
   async run() {
-    this.editor.lsp.client.sync();
-
-    if (!await this.compiled.get()) {
+    // TODO(enricozb): only handles single file
+    const version = this.editor.lsp.client.workspace.files[0].version;
+    if (!await this.compiled.get(version)) {
       return;
     }
 
@@ -174,13 +194,13 @@ class Playground {
         type: "module",
       }),
     );
-    this.runtime.worker.addEventListener("message", ({ data: [tag, stats, output] }) => {
+    this.runtime.worker.addEventListener("message", ({ data: [tag, message] }) => {
       if (tag === "output") {
-        this.console.showStatistics(stats);
-        this.console.appendOutput(output);
+        this.console.showStatistics(message.stats);
+        this.console.appendOutput(message.output);
       }
       if (tag === "flags") {
-        this.console.showFlags(stats);
+        this.console.showFlags(message.flags);
       }
     });
   }

@@ -4,29 +4,31 @@ use std::{
 };
 
 use include_dir::{Dir, DirEntry, include_dir};
+use url::Url;
 use vine::{
   components::loader::{EntryKind, FS},
   structures::ast::Ident,
 };
+use vine_lsp::Doc;
 
-pub static VINE_ROOT_DIR: Dir<'_> = include_dir!("$VINE_ROOT_DIR");
+static VINE_ROOT_DIR: Dir<'_> = include_dir!("$VINE_ROOT_DIR");
 
 #[derive(Clone)]
-pub struct PlaygroundFS {
+pub struct PlaygroundFS<'a> {
   root: &'static Dir<'static>,
-  main: HashMap<Ident, String>,
+  docs: &'a HashMap<Url, Doc>,
 }
 
-impl PlaygroundFS {
-  pub fn new(root: &'static Dir<'static>, main: HashMap<Ident, String>) -> Self {
-    Self { root, main }
+impl<'a> PlaygroundFS<'a> {
+  pub fn new(docs: &'a HashMap<Url, Doc>) -> Self {
+    Self { root: &VINE_ROOT_DIR, docs }
   }
 }
 
 #[derive(Debug)]
 enum PlaygroundPath<'a> {
   Root(&'a Path),
-  Main(Ident),
+  Main(Url),
 }
 
 impl<'a> PlaygroundPath<'a> {
@@ -35,11 +37,11 @@ impl<'a> PlaygroundPath<'a> {
       return Some(Self::Root(path));
     }
 
-    Some(Self::Main(Ident::new(path.strip_prefix("/").ok()?.with_extension("").to_str()?)?))
+    Url::parse(&format!("file://{}", path.display())).ok().map(Self::Main)
   }
 }
 
-impl FS for PlaygroundFS {
+impl<'a> FS for PlaygroundFS<'a> {
   type Path = PathBuf;
 
   #[tracing::instrument(level = "trace", skip(self), fields(?path), ret)]
@@ -50,8 +52,7 @@ impl FS for PlaygroundFS {
         DirEntry::Dir(_) => Some(EntryKind::Dir),
         DirEntry::File(_) => Some(EntryKind::File),
       },
-      PlaygroundPath::Main(ident) if self.main.contains_key(&ident) => Some(EntryKind::File),
-      _ => None,
+      PlaygroundPath::Main(url) => self.docs.contains_key(&url).then_some(EntryKind::File),
     }
   }
 
@@ -76,7 +77,7 @@ impl FS for PlaygroundFS {
   fn read_file(&mut self, path: &Self::Path) -> Option<String> {
     match PlaygroundPath::parse(path)? {
       PlaygroundPath::Root(path) => Some(self.root.get_file(path)?.contents_utf8()?.to_owned()),
-      PlaygroundPath::Main(ident) => self.main.get(&ident).cloned(),
+      PlaygroundPath::Main(url) => Some(self.docs.get(&url)?.text.clone()),
     }
   }
 }

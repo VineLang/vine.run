@@ -4,14 +4,20 @@ use std::{
   sync::{Arc, Mutex},
 };
 
-use ivy::{ast::Nets, optimize::Optimizer};
+use ivy::{
+  name::{NameId, Table},
+  net::{FlatNet, TreeNet},
+  text::ast::Nets,
+};
 use js_sys::Function;
 use serde::Serialize;
 use tokio::{
   io::{AsyncBufReadExt, AsyncReadExt, AsyncWriteExt, BufReader, DuplexStream},
   sync::RwLock,
 };
+use url::Url;
 use vine::{
+  backend::{BackendConfig, Target},
   compiler::Compiler,
   components::loader::{FileId, Loader},
   structures::{
@@ -20,17 +26,17 @@ use vine::{
     diag::{Color as DiagColor, DiagSpan},
   },
 };
-use vine_lsp::{Hooks, Lsp};
+use vine_lsp::{Doc, Hooks, Lsp};
 use vine_util::idx::IdxVec;
 use wasm_bindgen::{JsValue, prelude::wasm_bindgen};
 
-use crate::fs::{PlaygroundFS, VINE_ROOT_DIR};
+use crate::fs::PlaygroundFS;
 
 #[wasm_bindgen]
 pub struct PlaygroundBackend {
   lsp: Arc<RwLock<Lsp>>,
   checkpoint: Arc<Mutex<Option<Checkpoint>>>,
-  nets: Option<Nets>,
+  nets: Option<(Table, HashMap<NameId, FlatNet>)>,
 }
 
 #[wasm_bindgen]
@@ -59,8 +65,7 @@ impl PlaygroundBackend {
     let lsp = self.lsp.clone();
     let hooks = PlaygroundLspHooks::new(self.checkpoint.clone(), on_compile);
     wasm_bindgen_futures::spawn_local(async move {
-      vine_lsp::lsp(lsp, Vec::new(), Some(PathBuf::from("/play.vi")), input_rx, output_tx, hooks)
-        .await;
+      vine_lsp::lsp_stdio(lsp, hooks, input_rx, output_tx).await;
     });
 
     LspTransport::new(input_tx, output_rx, on_message)
@@ -80,12 +85,32 @@ impl PlaygroundBackend {
   async fn _nets(&mut self) -> Option<String> {
     let checkpoint = self.checkpoint.lock().unwrap().take();
     if let Some(checkpoint) = checkpoint {
-      let mut nets = self.lsp.write().await.compiler.nets_from(&checkpoint);
-      Optimizer::default().optimize(&mut nets, &[]);
-      self.nets = Some(nets);
+      let mut table = Table::default();
+      let mut nets = HashMap::default();
+      self.lsp.write().await.compiler.nets_from(&mut table, &mut nets, &checkpoint);
+
+      let config = BackendConfig {
+        target: Target::Ivm,
+        entrypoints: None,
+        optimize: true,
+        optimize_all: false,
+        optimize_limit: None,
+        prune: true,
+      };
+
+      vine::backend::backend(&mut table, &config, &mut nets);
+      self.nets = Some((table, nets));
     }
 
-    self.nets.as_ref().map(ToString::to_string)
+    if let Some((table, nets)) = &self.nets {
+      let mut nets = TreeNet::from_flat_nets(nets);
+      nets.values_mut().for_each(TreeNet::resolve_links);
+      let nets = Nets::from_tree_nets(&nets);
+
+      Some(nets.print(table))
+    } else {
+      None
+    }
   }
 }
 
@@ -101,18 +126,31 @@ impl PlaygroundLspHooks {
 }
 
 impl Hooks for PlaygroundLspHooks {
-  #[tracing::instrument(level = "trace", skip(self))]
-  fn load_entrypoints(&self, checkpoint: Checkpoint) {
+  #[tracing::instrument(level = "trace", skip(self, compiler, docs))]
+  fn load_modules(
+    &self,
+    compiler: &mut Compiler,
+    file_paths: &mut IdxVec<FileId, PathBuf>,
+    docs: &HashMap<Url, Doc>,
+  ) {
+    let mut loader = Loader::new(compiler, PlaygroundFS::new(docs), Some(file_paths));
+    loader.load_main_mod(Ident("play".to_owned()), "/play.vi".into());
+  }
+
+  fn pre_check(&self, checkpoint: Checkpoint) {
     *self.checkpoint.lock().unwrap() = Some(checkpoint);
   }
 
   #[tracing::instrument(level = "trace", skip_all)]
-  fn refresh(&self, compiler: &mut Compiler) {
+  fn refresh(&self, compiler: &mut Compiler, docs: &HashMap<Url, Doc>) {
+    // TODO(enricozb): this only handles one file.
+    let version = docs.values().next().map(|doc| doc.version);
+    let version = serde_wasm_bindgen::to_value(&version).unwrap();
     let success = compiler.diags.bail().is_ok();
     let success = serde_wasm_bindgen::to_value(&success).unwrap();
     let diag_lines = PlaygroundDiagSpan::from_diags(compiler.format_diags());
     let diag_lines = serde_wasm_bindgen::to_value(&diag_lines).unwrap();
-    self.on_compile.call2(&JsValue::NULL, &success, &diag_lines).unwrap();
+    self.on_compile.call3(&JsValue::NULL, &version, &success, &diag_lines).unwrap();
   }
 }
 
@@ -210,7 +248,8 @@ pub enum PlaygroundDiagColor {
 #[tracing::instrument(level = "trace", skip(compiler), ret)]
 fn load_root(compiler: &mut Compiler) -> IdxVec<FileId, PathBuf> {
   let mut file_paths = IdxVec::new();
-  let fs = PlaygroundFS::new(&VINE_ROOT_DIR, HashMap::default());
+  let docs = HashMap::default();
+  let fs = PlaygroundFS::new(&docs);
   let mut loader = Loader::new(compiler, fs, Some(&mut file_paths));
   loader.load_mod(Ident("root".into()), PathBuf::from("/root"));
   file_paths

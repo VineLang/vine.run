@@ -13,11 +13,11 @@ defineWorker<API>({
     const start = Date.now();
     const elapsed = () => Date.now() - start;
     const inspect = (stats: string, output: string) => {
-      self.postMessage(["output", stats, output]);
+      self.postMessage(["output", { stats, output }]);
     };
     const flags = await runtime.runNets(debugHint, nets, elapsed, inspect);
     if (flags.length > 0) {
-      self.postMessage(["flags", flags]);
+      self.postMessage(["flags", { flags }]);
     }
   },
 });

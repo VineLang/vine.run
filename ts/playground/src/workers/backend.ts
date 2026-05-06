@@ -20,8 +20,8 @@ const backend = new PlaygroundBackend();
 
 const transport = backend.spawnLspServer((msg: string) => {
   self.postMessage(["lsp", msg]);
-}, (success: boolean, diagLines: Diag[][]) => {
-  self.postMessage(["compiled", success, diagLines]);
+}, (version: number, success: boolean, diagLines: Diag[][]) => {
+  self.postMessage(["compiled", version, success, diagLines]);
 });
 
 defineWorker<API>({
