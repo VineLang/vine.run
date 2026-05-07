@@ -104,21 +104,25 @@ export class Editor {
     }
   }
 
-  load(content: string) {
+  load(content: string, undoable: boolean) {
+    const annotations = [];
+
+    if (!undoable) {
+      annotations.push(Transaction.addToHistory.of(false));
+    }
+
     this.view.dispatch({
       changes: {
         from: 0,
         to: this.view.state.doc.length,
         insert: content,
       },
-      annotations: [
-        Transaction.addToHistory.of(false),
-      ],
+      annotations: [],
     });
   }
 
   loadExample(example: string) {
-    this.load(EXAMPLES[example as keyof typeof EXAMPLES]);
+    this.load(EXAMPLES[example as keyof typeof EXAMPLES], true);
   }
 
   loadVersionedContent(content: string) {
@@ -126,7 +130,7 @@ export class Editor {
     switch (Number.parseInt(version!)) {
       case 0:
         const files = JSON.parse(json!);
-        this.load(files.play!);
+        this.load(files.play!, false);
         break;
 
       default:

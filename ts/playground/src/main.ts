@@ -131,6 +131,7 @@ class Playground {
     }
     this.pendingSync = setTimeout(() => {
       this.pendingSync = null;
+      document.querySelector("body")!.classList.add("progress");
       this.editor.sync();
     }, 100);
   }
