@@ -122,7 +122,7 @@ body {
     }
   }
 
-  button, label, select {
+  button:not(:disabled), label, select {
     cursor: pointer;
   }
 
@@ -176,6 +176,26 @@ body {
 
 pre, code {
   font-family: var(--mono);
+}
+
+.sharing {
+  display: inline-block;
+  animation: sharing 1.5s ease-in-out infinite;
+  transform-origin: center;
+}
+
+@keyframes sharing {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+    filter: brightness(1);
+  }
+
+  50% {
+    opacity: 0.75;
+    transform: scale(0.96);
+    filter: brightness(0.8);
+  }
 }
 
 #console, #editor .cm-scroller {

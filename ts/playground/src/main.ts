@@ -6,13 +6,6 @@ import { consumeWorker, type WebWorker } from "./workers/lib.ts";
 import { type API as Runtime } from "./workers/runtime.ts";
 
 class Playground {
-  examples: HTMLSelectElement;
-  breadthFirst: HTMLInputElement;
-  debug: HTMLInputElement;
-  runButton: HTMLButtonElement;
-  stopButton: HTMLButtonElement;
-  shareButton: HTMLButtonElement;
-
   backend: WebWorker<Backend>;
   runtime?: WebWorker<Runtime>;
 
@@ -20,17 +13,17 @@ class Playground {
   runId: number;
   pendingSync: number | null;
 
+  examples: HTMLSelectElement;
+  breadthFirst: HTMLInputElement;
+  debug: HTMLInputElement;
+  runButton: HTMLButtonElement;
+  stopButton: HTMLButtonElement;
+  shareButton: HTMLButtonElement;
+
   editor: Editor;
   console: Console;
 
   constructor() {
-    this.examples = document.querySelector("#examples")!;
-    this.breadthFirst = document.querySelector("#breadthFirst")!;
-    this.debug = document.querySelector("#debug")!;
-    this.runButton = this.createActionButton("Run", "Ctrl/Cmd+Enter", () => this.run());
-    this.stopButton = this.createActionButton("Stop", "Ctrl/Cmd+\\", () => this.stop());
-    this.shareButton = document.querySelector("#share")!;
-
     this.backend = consumeWorker(
       new Worker(new URL("./workers/backend.ts", import.meta.url), {
         type: "module",
@@ -40,6 +33,13 @@ class Playground {
     this.compiled = new PromiseMap();
     this.runId = 0;
     this.pendingSync = null;
+
+    this.examples = document.querySelector("#examples")!;
+    this.breadthFirst = document.querySelector("#breadthFirst")!;
+    this.debug = document.querySelector("#debug")!;
+    this.runButton = this.createActionButton("Run", "Ctrl/Cmd+Enter", () => this.run());
+    this.stopButton = this.createActionButton("Stop", "Ctrl/Cmd+\\", () => this.stop());
+    this.shareButton = document.querySelector("#share")!;
 
     this.editor = new Editor(
       document.querySelector("#editor")!,
@@ -111,6 +111,9 @@ class Playground {
     });
 
     this.shareButton.addEventListener("click", async () => {
+      this.shareButton.disabled = true;
+      this.shareButton.classList.add("sharing");
+
       const content = this.editor.versionedContent();
       const { key } = await fetch("https://api.vine.run", {
         method: "POST",
@@ -119,7 +122,13 @@ class Playground {
       }).then(res => res.json());
       const url = `${window.location.origin}${window.location.pathname}#${key}`;
       await navigator.clipboard.writeText(url);
+
       this.shareButton.innerText = "Copied!";
+      this.shareButton.classList.remove("sharing");
+      setTimeout(() => {
+        this.shareButton.innerText = "Share"
+        this.shareButton.disabled = false;
+      }, 3000);
     });
   }
 
