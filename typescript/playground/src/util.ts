@@ -30,11 +30,11 @@ export class PromiseMap<K, V> {
   }
 }
 
-export function setUrlHashContent(content: string) {
-  history.replaceState(null, "", "#v" + encode(content));
+export function encodeUrlHashContent(content: string): string {
+  return "#v" + encode(content);
 }
 
-export async function getUrlHashContent(): Promise<string | null> {
+export async function decodeUrlHashContent(): Promise<string | null> {
   const hash = window.location.hash.slice(1);
   if (!hash) {
     return null;

@@ -6,7 +6,7 @@ import {
   type Transport,
 } from "@codemirror/lsp-client";
 import { searchKeymap } from "@codemirror/search";
-import { EditorState, Transaction } from "@codemirror/state";
+import { EditorSelection, EditorState, Transaction } from "@codemirror/state";
 import { drawSelection, EditorView, keymap, lineNumbers, type ViewUpdate } from "@codemirror/view";
 import { Syntax, syntaxExtension } from "./syntax.ts";
 import { type API as Backend } from "./workers/backend.ts";
@@ -136,6 +136,16 @@ export class Editor {
       default:
         throw `invalid version: ${version}`;
     }
+  }
+
+  getSelection(): any {
+    return this.view.state.selection.toJSON();
+  }
+
+  setSelection(selection: any) {
+    this.view.dispatch({
+      selection: EditorSelection.fromJSON(selection),
+    });
   }
 }
 

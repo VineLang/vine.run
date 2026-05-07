@@ -1,6 +1,6 @@
 import { Console } from "./console.ts";
 import { Editor } from "./editor.ts";
-import { getUrlHashContent, PromiseMap, setUrlHashContent } from "./util.ts";
+import { decodeUrlHashContent, encodeUrlHashContent, PromiseMap } from "./util.ts";
 import { type API as Backend } from "./workers/backend.ts";
 import { consumeWorker, type WebWorker } from "./workers/lib.ts";
 import { type API as Runtime } from "./workers/runtime.ts";
@@ -12,6 +12,7 @@ class Playground {
   compiled: PromiseMap<number, boolean>;
   runId: number;
   pendingSync: number | null;
+  inPopState: boolean;
 
   examples: HTMLSelectElement;
   breadthFirst: HTMLInputElement;
@@ -33,6 +34,7 @@ class Playground {
     this.compiled = new PromiseMap();
     this.runId = 0;
     this.pendingSync = null;
+    this.inPopState = false;
 
     this.examples = document.querySelector("#examples")!;
     this.breadthFirst = document.querySelector("#breadthFirst")!;
@@ -64,7 +66,7 @@ class Playground {
   async initEditor() {
     await this.editor.initialize();
     try {
-      this.editor.loadVersionedContent((await getUrlHashContent())!);
+      this.editor.loadVersionedContent((await decodeUrlHashContent())!);
     } catch (error) {
       console.warn("Failed to load content from hash, loading hello world:", error);
       this.editor.loadExample("hello_world");
@@ -89,6 +91,13 @@ class Playground {
         this.compiled.set(version, success);
         document.querySelector("body")!.classList.remove("progress");
       }
+    });
+
+    window.addEventListener("popstate", async (event) => {
+      this.inPopState = true;
+      this.editor.loadVersionedContent((await decodeUrlHashContent())!);
+      this.editor.setSelection(event.state.selection);
+      this.inPopState = false;
     });
 
     document.addEventListener("keydown", (event) => {
@@ -135,8 +144,18 @@ class Playground {
     });
   }
 
+  updateState(hash: string, action: "edit" | "run") {
+    if (!this.inPopState && history.state?.action === "run" && action == "edit") {
+      history.pushState(history.state, "", window.location.hash);
+    }
+
+    const selection = this.editor.getSelection();
+    history.replaceState({ action, selection }, "", hash);
+  }
+
   onChange() {
-    setUrlHashContent(this.editor.versionedContent());
+    const hash = encodeUrlHashContent(this.editor.versionedContent());
+    this.updateState(hash, "edit");
 
     if (this.pendingSync !== null) {
       clearTimeout(this.pendingSync);
@@ -149,6 +168,8 @@ class Playground {
   }
 
   async run() {
+    this.updateState(window.location.hash, "run");
+
     // TODO(enricozb): only handles single file
     const version = this.editor.lsp!.client.workspace.files[0].version;
     if (!await this.compiled.get(version)) {
