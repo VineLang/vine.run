@@ -13,31 +13,31 @@ use ivy::{name::Table, text::parser::Parser};
 use wasm_bindgen::{JsValue, prelude::wasm_bindgen};
 
 #[wasm_bindgen]
-pub struct PlaygroundRuntime {
-  breadth_first: bool,
-}
+pub struct PlaygroundRuntime;
 
 #[wasm_bindgen]
 impl PlaygroundRuntime {
   #[wasm_bindgen(constructor)]
-  pub fn new(breadth_first: bool) -> Self {
-    Self { breadth_first }
+  pub fn new() -> Self {
+    Self
   }
 
   #[wasm_bindgen(js_name = runNets)]
   pub fn run_nets(
     self,
+    breadth_first: bool,
     debug_hint: bool,
     nets: String,
     elapsed: &js_sys::Function,
     inspect: &js_sys::Function,
   ) -> String {
-    self._run_nets(debug_hint, nets, elapsed, inspect)
+    self._run_nets(breadth_first, debug_hint, nets, elapsed, inspect)
   }
 
   #[tracing::instrument(level = "trace", skip(self, nets, inspect), ret)]
   fn _run_nets(
     self,
+    breadth_first: bool,
     debug_hint: bool,
     nets: String,
     elapsed: &js_sys::Function,
@@ -56,7 +56,7 @@ impl PlaygroundRuntime {
       let runner = Runner::new(&mut heap, &mut host, extrinsics, table, &nets);
       let hooks = PlaygroundRuntimeHooks { capture: &capture, elapsed, inspect, interactions: 0 };
 
-      runner.normalize(self.breadth_first, 0, hooks)
+      runner.normalize(breadth_first, 0, hooks)
     };
 
     let output = capture.into_output();

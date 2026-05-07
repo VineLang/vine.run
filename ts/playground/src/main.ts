@@ -55,16 +55,20 @@ class Playground {
   }
 
   async initialize() {
+    await this.initEditor();
+    this.initExamples();
+    this.initEventListeners();
+    this.initControls();
+  }
+
+  async initEditor() {
     await this.editor.initialize();
     try {
       this.editor.loadVersionedContent((await getUrlHashContent())!);
     } catch (error) {
-      console.warn("Failed to load content from hash, loading hello world", error);
+      console.warn("Failed to load content from hash, loading hello world:", error);
       this.editor.loadExample("hello_world");
     }
-    this.initExamples();
-    this.initEventListeners();
-    this.initControls();
   }
 
   initExamples() {
@@ -101,7 +105,6 @@ class Playground {
   }
 
   initControls() {
-    // document.querySelector<HTMLDivElement>("#controls")!.style.visibility = "visible";
     this.setRunControls();
 
     this.debug.addEventListener("click", async () => {
@@ -126,7 +129,7 @@ class Playground {
       this.shareButton.innerText = "Copied!";
       this.shareButton.classList.remove("sharing");
       setTimeout(() => {
-        this.shareButton.innerText = "Share"
+        this.shareButton.innerText = "Share";
         this.shareButton.disabled = false;
       }, 3000);
     });
@@ -161,7 +164,7 @@ class Playground {
       this.stop();
       this.setStopControls();
       this.newRuntime();
-      await this.runtime!.runNets(!this.debug.checked, this.breadthFirst.checked, nets);
+      await this.runtime!.runNets(this.breadthFirst.checked, !this.debug.checked, nets);
       this.runtime!.terminate();
       this.runtime = undefined;
     }

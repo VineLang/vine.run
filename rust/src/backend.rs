@@ -36,7 +36,7 @@ use crate::fs::PlaygroundFS;
 pub struct PlaygroundBackend {
   lsp: Arc<RwLock<Lsp>>,
   checkpoint: Arc<Mutex<Option<Checkpoint>>>,
-  nets: Option<(Table, HashMap<NameId, FlatNet>)>,
+  compiled: Option<(Table, HashMap<NameId, FlatNet>)>,
 }
 
 #[wasm_bindgen]
@@ -47,9 +47,9 @@ impl PlaygroundBackend {
     let file_paths = load_root(&mut compiler);
     let lsp = Arc::new(RwLock::new(Lsp::new(compiler, file_paths)));
     let checkpoint = Default::default();
-    let nets = None;
+    let compiled = None;
 
-    Self { lsp, checkpoint, nets }
+    Self { lsp, checkpoint, compiled }
   }
 
   #[wasm_bindgen(js_name = spawnLspServer)]
@@ -97,12 +97,12 @@ impl PlaygroundBackend {
         optimize_limit: None,
         prune: true,
       };
-
       vine::backend::backend(&mut table, &config, &mut nets);
-      self.nets = Some((table, nets));
+
+      self.compiled = Some((table, nets));
     }
 
-    if let Some((table, nets)) = &self.nets {
+    if let Some((table, nets)) = &self.compiled {
       let mut nets = TreeNet::from_flat_nets(nets);
       nets.values_mut().for_each(TreeNet::resolve_links);
       let nets = Nets::from_tree_nets(&nets);
