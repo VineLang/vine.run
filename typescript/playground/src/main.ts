@@ -205,7 +205,6 @@ class Playground {
     button.innerText = label;
     button.title = tooltip;
     button.addEventListener("click", onclick);
-    button.classList.add(label.toLowerCase());
     return button;
   }
 

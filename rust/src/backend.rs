@@ -143,7 +143,7 @@ impl Hooks for PlaygroundLspHooks {
 
   #[tracing::instrument(level = "trace", skip_all)]
   fn refresh(&self, compiler: &mut Compiler, docs: &HashMap<Url, Doc>) {
-    // TODO(enricozb): this only handles one file.
+    // TODO(enricozb): only handles single file
     let version = docs.values().next().map(|doc| doc.version);
     let version = serde_wasm_bindgen::to_value(&version).unwrap();
     let success = compiler.diags.bail().is_ok();
