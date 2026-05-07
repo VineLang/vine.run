@@ -13,71 +13,81 @@ use vine_lsp::Doc;
 
 static VINE_ROOT_DIR: Dir<'_> = include_dir!("$VINE_ROOT_DIR");
 
-#[derive(Clone)]
-pub struct PlaygroundFS<'a> {
+pub struct PlaygroundRootFS {
   root: &'static Dir<'static>,
+}
+
+impl PlaygroundRootFS {
+  pub fn new() -> Self {
+    Self { root: &VINE_ROOT_DIR }
+  }
+
+  fn strip_prefix(path: &Path) -> Option<&Path> {
+    path.strip_prefix("/root").ok()
+  }
+}
+
+impl FS for PlaygroundRootFS {
+  type Path = PathBuf;
+
+  fn kind(&mut self, path: &Self::Path) -> Option<EntryKind> {
+    let path = Self::strip_prefix(path)?;
+    if path == "" {
+      Some(EntryKind::Dir)
+    } else {
+      match self.root.get_entry(path)? {
+        DirEntry::Dir(_) => Some(EntryKind::Dir),
+        DirEntry::File(_) => Some(EntryKind::File),
+      }
+    }
+  }
+
+  fn child_dir(&mut self, path: &Self::Path, name: &Ident) -> Self::Path {
+    path.join(&name.0)
+  }
+
+  fn child_file(&mut self, path: &Self::Path, name: &Ident) -> Self::Path {
+    path.join(format!("{}.vi", name.0))
+  }
+
+  fn read_file(&mut self, path: &Self::Path) -> Option<String> {
+    let path = Self::strip_prefix(path)?;
+    Some(self.root.get_file(path)?.contents_utf8()?.to_owned())
+  }
+}
+
+pub struct PlaygroundMainFS<'a> {
   docs: &'a HashMap<Url, Doc>,
 }
 
-impl<'a> PlaygroundFS<'a> {
+impl<'a> PlaygroundMainFS<'a> {
   pub fn new(docs: &'a HashMap<Url, Doc>) -> Self {
-    Self { root: &VINE_ROOT_DIR, docs }
+    Self { docs }
+  }
+
+  fn path_to_url(path: &Path) -> Option<Url> {
+    Url::parse(&format!("file://{}", path.display())).ok()
   }
 }
 
-#[derive(Debug)]
-enum PlaygroundPath<'a> {
-  Root(&'a Path),
-  Main(Url),
-}
-
-impl<'a> PlaygroundPath<'a> {
-  fn parse(path: &'a Path) -> Option<Self> {
-    if let Ok(path) = path.strip_prefix("/root") {
-      return Some(Self::Root(path));
-    }
-
-    Url::parse(&format!("file://{}", path.display())).ok().map(Self::Main)
-  }
-}
-
-impl<'a> FS for PlaygroundFS<'a> {
+impl<'a> FS for PlaygroundMainFS<'a> {
   type Path = PathBuf;
 
-  #[tracing::instrument(level = "trace", skip(self), fields(?path), ret)]
   fn kind(&mut self, path: &Self::Path) -> Option<EntryKind> {
-    match PlaygroundPath::parse(path)? {
-      PlaygroundPath::Root(path) if path == "" => Some(EntryKind::Dir),
-      PlaygroundPath::Root(path) => match self.root.get_entry(path)? {
-        DirEntry::Dir(_) => Some(EntryKind::Dir),
-        DirEntry::File(_) => Some(EntryKind::File),
-      },
-      PlaygroundPath::Main(url) => self.docs.contains_key(&url).then_some(EntryKind::File),
-    }
+    let url = Self::path_to_url(path)?;
+    self.docs.contains_key(&url).then_some(EntryKind::File)
   }
 
-  #[tracing::instrument(level = "trace", skip(self), fields(?path, ?name), ret)]
-  fn child_dir(&mut self, path: &Self::Path, name: &Ident) -> Self::Path {
-    match PlaygroundPath::parse(path).unwrap() {
-      PlaygroundPath::Root(path) => PathBuf::from("/root").join(path).join(&name.0),
-      PlaygroundPath::Main(_) => unreachable!(),
-    }
+  fn child_dir(&mut self, _path: &Self::Path, _name: &Ident) -> Self::Path {
+    unreachable!()
   }
 
-  #[tracing::instrument(level = "trace", skip(self), fields(?path, ?name), ret)]
-  fn child_file(&mut self, path: &Self::Path, name: &Ident) -> Self::Path {
-    let file_name = format!("{}.vi", name.0);
-    match PlaygroundPath::parse(path).unwrap() {
-      PlaygroundPath::Root(path) => PathBuf::from("/root").join(path).join(&file_name),
-      PlaygroundPath::Main(_) => unreachable!(),
-    }
+  fn child_file(&mut self, _path: &Self::Path, _name: &Ident) -> Self::Path {
+    unreachable!()
   }
 
-  #[tracing::instrument(level = "trace", skip(self), fields(?path), ret)]
   fn read_file(&mut self, path: &Self::Path) -> Option<String> {
-    match PlaygroundPath::parse(path)? {
-      PlaygroundPath::Root(path) => Some(self.root.get_file(path)?.contents_utf8()?.to_owned()),
-      PlaygroundPath::Main(url) => Some(self.docs.get(&url)?.text.clone()),
-    }
+    let url = Self::path_to_url(path)?;
+    Some(self.docs.get(&url)?.text.clone())
   }
 }

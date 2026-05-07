@@ -30,7 +30,7 @@ use vine_lsp::{Doc, Hooks, Lsp};
 use vine_util::idx::IdxVec;
 use wasm_bindgen::{JsValue, prelude::wasm_bindgen};
 
-use crate::fs::PlaygroundFS;
+use crate::fs::{PlaygroundMainFS, PlaygroundRootFS};
 
 #[wasm_bindgen]
 pub struct PlaygroundBackend {
@@ -133,7 +133,7 @@ impl Hooks for PlaygroundLspHooks {
     file_paths: &mut IdxVec<FileId, PathBuf>,
     docs: &HashMap<Url, Doc>,
   ) {
-    let mut loader = Loader::new(compiler, PlaygroundFS::new(docs), Some(file_paths));
+    let mut loader = Loader::new(compiler, PlaygroundMainFS::new(docs), Some(file_paths));
     loader.load_main_mod(Ident("play".to_owned()), "/play.vi".into());
   }
 
@@ -248,8 +248,7 @@ pub enum PlaygroundDiagColor {
 #[tracing::instrument(level = "trace", skip(compiler), ret)]
 fn load_root(compiler: &mut Compiler) -> IdxVec<FileId, PathBuf> {
   let mut file_paths = IdxVec::new();
-  let docs = HashMap::default();
-  let fs = PlaygroundFS::new(&docs);
+  let fs = PlaygroundRootFS::new();
   let mut loader = Loader::new(compiler, fs, Some(&mut file_paths));
   loader.load_mod(Ident("root".into()), PathBuf::from("/root"));
   file_paths
