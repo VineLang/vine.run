@@ -4,7 +4,6 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
-
 ivm = { git = "https://github.com/VineLang/vine.git", branch = "enricozb/playground-hedera" }
 ivy = { git = "https://github.com/VineLang/vine.git", branch = "enricozb/playground-hedera" }
 vine = { git = "https://github.com/VineLang/vine.git", branch = "enricozb/playground-hedera" }

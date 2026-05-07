@@ -6,7 +6,7 @@ import {
   type Transport,
 } from "@codemirror/lsp-client";
 import { searchKeymap } from "@codemirror/search";
-import { EditorState } from "@codemirror/state";
+import { EditorState, Transaction } from "@codemirror/state";
 import { drawSelection, EditorView, keymap, lineNumbers, type ViewUpdate } from "@codemirror/view";
 import { Syntax, syntaxExtension } from "./syntax.ts";
 import { type API as Backend } from "./workers/backend.ts";
@@ -92,16 +92,16 @@ export class Editor {
     update.view.dispatch({ effects });
   }
 
-  // Forces a `textDocument/didChange` request to be sent to the LSP.
-  didChange() {
-    this.view.dispatch({
-      changes: {
-        from: 0,
-        to: this.view.state.doc.length,
-        insert: this.view.state.doc.toString(),
-      },
-    });
+  sync() {
     this.lsp.client.sync();
+
+    for (const file of this.lsp.client.workspace.files) {
+      this.lsp.client.notification("textDocument/didSave", {
+        textDocument: {
+          uri: file.uri,
+        },
+      });
+    }
   }
 
   load(content: string) {
@@ -111,6 +111,9 @@ export class Editor {
         to: this.view.state.doc.length,
         insert: content,
       },
+      annotations: [
+        Transaction.addToHistory.of(false),
+      ],
     });
   }
 

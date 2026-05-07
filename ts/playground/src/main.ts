@@ -101,13 +101,13 @@ class Playground {
   }
 
   initControls() {
-    document.querySelector<HTMLDivElement>("#controls")!.style.visibility = "visible";
+    // document.querySelector<HTMLDivElement>("#controls")!.style.visibility = "visible";
     this.setRunControls();
 
     this.debug.addEventListener("click", async () => {
       // Force recompilation of playground file(s) with debug enabled/disabled.
       await this.backend.debug(this.debug.checked);
-      this.editor.didChange();
+      this.editor.sync();
     });
 
     this.shareButton.addEventListener("click", async () => {
@@ -131,25 +131,13 @@ class Playground {
     }
     this.pendingSync = setTimeout(() => {
       this.pendingSync = null;
-      this.sync();
+      this.editor.sync();
     }, 100);
-  }
-
-  sync() {
-    this.editor.lsp.client.sync();
-    // TODO(enricozb): only handles single file
-    for (const file of this.editor.lsp.client.workspace.files) {
-      this.editor.lsp.client.notification("textDocument/didSave", {
-        textDocument: {
-          uri: file.uri,
-        },
-      });
-    }
   }
 
   async run() {
     // TODO(enricozb): only handles single file
-    const version = this.editor.lsp.client.workspace.files[0].version;
+    const version = this.editor.lsp!.client.workspace.files[0].version;
     if (!await this.compiled.get(version)) {
       return;
     }

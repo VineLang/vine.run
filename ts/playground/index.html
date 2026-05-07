@@ -32,11 +32,13 @@
     <meta name="msapplication-square310x310logo" content="/img/mstile-310x310.png" />
   </head>
   <body>
-    <header>
+    <header style="grid-area: header">
       <img class="logo" src="/img/logo.svg" draggable="false">
       <h1>Playground</h1>
-      <div style="flex: 1"></div>
-      <div id="controls" style="visibility: hidden">
+    </header>
+
+    <div id="tools" style="grid-area: tools" class="controls">
+      <label class="examples">
         <select name="examples" id="examples">
           <option disabled selected value>Examples</option>
           <option value="hello_world">hello_world.vi</option>
@@ -45,34 +47,46 @@
           <option value="mandelbrot">mandelbrot.vi</option>
           <option value="lcs">lcs.vi</option>
         </select>
-        <label>
-          <input type="checkbox" id="breadthFirst">
-          Breadth First
-        </label>
-        <label>
-          <input type="checkbox" id="debug">
-          Debug
-        </label>
-        <button id="action">Run</button>
-        <button id="share">Share</button>
+        <span>Examples</span>
+      </label>
+      <button id="share">
+        Share
+      </button>
+    </div>
+
+    <div id="gap" style="grid-area: gap"></div>
+
+    <div id="actions" style="grid-area: actions" class="controls">
+      <button id="action">Run</button>
+    </div>
+
+    <div id="options" style="grid-area: options" class="controls">
+      <label>
+        <input type="checkbox" id="breadthFirst">
+        Breadth-First
+      </label>
+
+      <label>
+        <input type="checkbox" id="debug">
+        Debug
+      </label>
+    </div>
+
+    <div id="editor" style="grid-area: editor"></div>
+
+    <div id="console" style="grid-area: console">
+      <div class="container empty">
+        <h3>Diagnostics</h3>
+        <pre><code id="diagnostics"></code></pre>
       </div>
-    </header>
-    <main>
-      <div id="editor"></div>
-      <div id="console">
-        <div class="container empty">
-          <h3>Diagnostics</h3>
-          <pre><code id="diagnostics"></code></pre>
-        </div>
-        <div class="container empty">
-          <h3>Output</h3>
-          <pre><code id="output"></code></pre>
-        </div>
-        <div class="container empty">
-          <h3>Statistics</h3>
-          <pre><code id="statistics"></code></pre>
-        </div>
+      <div class="container empty">
+        <h3>Output</h3>
+        <pre><code id="output"></code></pre>
       </div>
-    </main>
+      <div class="container empty">
+        <h3>Statistics</h3>
+        <pre><code id="statistics"></code></pre>
+      </div>
+    </div>
   </body>
 </html>
