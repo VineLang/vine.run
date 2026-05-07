@@ -49,7 +49,7 @@
           export VINE_ROOT_DIR=${"$"}{VINE_ROOT_DIR:-"${vine}/root/"}
 
           (
-            cd ts/playground
+            cd typescript/playground
             ${pkgs.pnpm}/bin/pnpm install
             ln -sf ${tree-sitter-vine-wasm} tree-sitter-vine
             chmod -R +w tree-sitter-vine
@@ -59,8 +59,8 @@
           (
             cd rust/
             ${pkgs.wasm-pack}/bin/wasm-pack build "$@"
-            rm -rf ../ts/playground/playground-rs-pkg
-            mv pkg ../ts/playground/playground-rs-pkg
+            rm -rf ../typescript/playground/playground-rs-pkg
+            mv pkg ../typescript/playground/playground-rs-pkg
           )
         '';
 
@@ -72,14 +72,14 @@
           ${pkgs.cargo-watch}/bin/cargo-watch \
             --ignore pkg/ \
             --workdir rust/ \
-            --shell 'cd .. && ${setup}/bin/setup --dev --no-opt && cd ts/playground && npx vite serve'
+            --shell 'cd .. && ${setup}/bin/setup --dev --no-opt && cd typescript/playground && npx vite serve'
         '';
 
         build = pkgs.writeShellScriptBin "build" ''
           test -f flake.nix || { echo "$(basename $0) must run at the repository root"; exit 1; }
 
           ${setup}/bin/setup --release
-          cd ts/playground && npx vite build
+          cd typescript/playground && npx vite build
         '';
       in
       {
