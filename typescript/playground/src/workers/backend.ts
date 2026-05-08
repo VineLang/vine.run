@@ -5,6 +5,7 @@ export type API = {
   sendLspMessage(msg: string): Promise<void>;
   debug(debug: boolean): Promise<void>;
   nets(): Promise<string | undefined>;
+  format(code: string): Promise<string>;
 };
 
 export type Diag = {
@@ -34,4 +35,7 @@ defineWorker<API>({
   async nets(): Promise<string | undefined> {
     return backend.nets();
   },
+  async format(code: string): Promise<string> {
+    return backend.format(code);
+  }
 });

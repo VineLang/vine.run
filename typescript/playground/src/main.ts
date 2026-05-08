@@ -17,6 +17,7 @@ class Playground {
   examples: HTMLSelectElement;
   breadthFirst: HTMLInputElement;
   debug: HTMLInputElement;
+  formatButton: HTMLButtonElement;
   runButton: HTMLButtonElement;
   stopButton: HTMLButtonElement;
   shareButton: HTMLButtonElement;
@@ -39,6 +40,7 @@ class Playground {
     this.examples = document.querySelector("#examples")!;
     this.breadthFirst = document.querySelector("#breadthFirst")!;
     this.debug = document.querySelector("#debug")!;
+    this.formatButton = document.querySelector("#format")!;
     this.runButton = document.querySelector("#run")!;
     this.stopButton = document.querySelector("#stop")!;
     this.shareButton = document.querySelector("#share")!;
@@ -115,6 +117,8 @@ class Playground {
 
   initControls() {
     this.setRunning(false);
+
+    this.formatButton.addEventListener("click", () => this.format());
 
     this.runButton.addEventListener("click", () => this.run());
     this.stopButton.addEventListener("click", () => this.stop());
@@ -206,6 +210,16 @@ class Playground {
     this.setRunning(false);
   }
 
+  async format() {
+    this.formatButton.disabled = true;
+    const code = await this.backend.format(this.editor.content());
+    this.editor.load(code, true);
+    this.formatButton.classList.add("on");
+    await new Promise(r => setTimeout(r, 1000));
+    this.formatButton.classList.remove("on");
+    this.formatButton.disabled = false;
+  }
+
   newRuntime() {
     this.runtime = consumeWorker(
       new Worker(new URL("./workers/runtime.ts", import.meta.url), {
@@ -227,6 +241,7 @@ class Playground {
     this.breadthFirst.disabled = running;
     this.debug.disabled = running;
     this.runButton.disabled = running;
+    this.runButton.classList.toggle("on", running);
     this.stopButton.disabled = !running;
   }
 }

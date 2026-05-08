@@ -136,14 +136,8 @@ body {
       color: var(--fg-grey);
     }
 
-    #run:disabled {
+    button.on, input:checked + label {
       border-color: var(--theme);
-      color: var(--theme);
-    }
-
-    input:checked + label {
-      border-color: var(--theme);
-      color: var(--fg);
       color: var(--theme);
     }
 

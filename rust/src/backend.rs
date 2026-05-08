@@ -25,6 +25,7 @@ use vine::{
     checkpoint::Checkpoint,
     diag::{Color as DiagColor, DiagSpan},
   },
+  tools::fmt::Formatter,
 };
 use vine_lsp::{Doc, Hooks, Lsp};
 use vine_util::idx::IdxVec;
@@ -111,6 +112,11 @@ impl PlaygroundBackend {
     } else {
       None
     }
+  }
+
+  #[wasm_bindgen(js_name = format)]
+  pub fn format(&mut self, code: String) -> String {
+    Formatter::fmt(&code, 60).unwrap_or(code)
   }
 }
 

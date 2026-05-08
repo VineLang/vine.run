@@ -75,6 +75,10 @@ export class Editor {
     this.syntax = await Syntax.init();
   }
 
+  content(): string {
+    return this.view.state.doc.toString();
+  }
+
   versionedContent(): string {
     const files = JSON.stringify({ play: this.view.state.doc.toString() });
 
