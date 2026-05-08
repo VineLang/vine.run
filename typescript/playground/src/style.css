@@ -87,7 +87,8 @@ body {
     display: flex;
     user-select: none;
     align-items: center;
-    overflow: hidden;
+    overflow: visible;
+    z-index: 1;
 
     padding: 0 .25rem;
 
@@ -112,16 +113,38 @@ body {
       }
     }
 
-    label {
-      position: relative;
-    }
-
-    select {
-      opacity: 0;
-      position: absolute;
-      left: 0;
-      max-width: 100%;
-      max-height: 100%;
+    button.dropdown {
+      div {
+        display: flex;
+        flex-direction: column;
+        position: absolute;
+        top: calc(100% + .5rem);
+        left: 0;
+        background: var(--bg);
+        border: 1px solid var(--grey);
+        border-radius: 5px;
+        font-size: 1rem;
+        text-align: left;
+        font-family: var(--mono);
+        span {
+          display: inline-block;
+          padding: .25rem .25rem;
+          transition: color .2s;
+          &:hover {
+            color: var(--theme);
+          }
+        }
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity .2s;
+      }
+      &:focus {
+        scale: 1;
+      }
+      &:focus div {
+        opacity: 1;
+        pointer-events: auto;
+      }
     }
 
     input {

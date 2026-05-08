@@ -14,7 +14,7 @@ class Playground {
   pendingSync: number | null;
   inPopState: boolean;
 
-  examples: HTMLSelectElement;
+  examples: HTMLButtonElement;
   breadthFirst: HTMLInputElement;
   debug: HTMLInputElement;
   formatButton: HTMLButtonElement;
@@ -76,14 +76,9 @@ class Playground {
   }
 
   initExamples() {
-    this.examples.value = "";
-    this.examples.addEventListener("change", (event: Event) => {
-      const example = event.target as HTMLSelectElement;
-      if (example.value) {
-        this.editor.loadExample(example.value);
-        this.examples.value = "";
-      }
-    });
+    this.examples.querySelectorAll("[value]").forEach(el => el.addEventListener("click", () => {
+      this.editor.loadExample(el.getAttribute("value")!);
+    }));
   }
 
   initEventListeners() {

@@ -37,17 +37,16 @@
       <h1>Playground</h1>
       <div style="flex: 1"></div>
       <button id="format">Format</button>
-      <label class="examples">
-        <select name="examples" id="examples">
-          <option disabled selected value>Examples</option>
-          <option value="hello_world">hello_world.vi</option>
-          <option value="fibonacci">fibonacci.vi</option>
-          <option value="primes">primes.vi</option>
-          <option value="mandelbrot">mandelbrot.vi</option>
-          <option value="lcs">lcs.vi</option>
-        </select>
-        <span>Examples</span>
-      </label>
+      <button id="examples" class="dropdown">
+        Examples
+        <div>
+          <span value="hello_world">hello_world.vi</span>
+          <span value="fibonacci">fibonacci.vi</span>
+          <span value="primes">primes.vi</span>
+          <span value="mandelbrot">mandelbrot.vi</span>
+          <span value="lcs">lcs.vi</span>
+        </div>
+      </button>
       <button id="share">Share</button>
     </header>
 
