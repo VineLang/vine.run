@@ -39,8 +39,8 @@ class Playground {
     this.examples = document.querySelector("#examples")!;
     this.breadthFirst = document.querySelector("#breadthFirst")!;
     this.debug = document.querySelector("#debug")!;
-    this.runButton = this.createActionButton("Run", "Ctrl/Cmd+Enter", () => this.run());
-    this.stopButton = this.createActionButton("Stop", "Ctrl/Cmd+\\", () => this.stop());
+    this.runButton = document.querySelector("#run")!;
+    this.stopButton = document.querySelector("#stop")!;
     this.shareButton = document.querySelector("#share")!;
 
     this.editor = new Editor(
@@ -114,7 +114,11 @@ class Playground {
   }
 
   initControls() {
-    this.setRunControls();
+    this.setRunning(false);
+
+    this.runButton.addEventListener("click", () => this.run());
+    this.stopButton.addEventListener("click", () => this.stop());
+    console.warn(this.runButton, this.stopButton)
 
     this.debug.addEventListener("click", async () => {
       // Force recompilation of playground file(s) with debug enabled/disabled.
@@ -135,12 +139,11 @@ class Playground {
       const url = `${window.location.origin}${window.location.pathname}#${key}`;
       await navigator.clipboard.writeText(url);
 
-      this.shareButton.innerText = "Copied!";
       this.shareButton.classList.remove("sharing");
-      setTimeout(() => {
-        this.shareButton.innerText = "Share";
-        this.shareButton.disabled = false;
-      }, 3000);
+      this.shareButton.classList.add("shared");
+      await new Promise(r => setTimeout(r, 1000));
+      this.shareButton.classList.remove("shared");
+      this.shareButton.disabled = false;
     });
   }
 
@@ -183,14 +186,14 @@ class Playground {
 
     if (nets && runId === this.runId) {
       this.stop();
-      this.setStopControls();
+      this.setRunning(true);
       this.newRuntime();
       await this.runtime!.runNets(this.breadthFirst.checked, !this.debug.checked, nets);
       this.runtime!.terminate();
       this.runtime = undefined;
     }
 
-    this.setRunControls();
+    this.setRunning(false);
   }
 
   stop() {
@@ -200,7 +203,7 @@ class Playground {
       this.console.showTerminated();
     }
 
-    this.setRunControls();
+    this.setRunning(false);
   }
 
   newRuntime() {
@@ -220,25 +223,11 @@ class Playground {
     });
   }
 
-  createActionButton(label: string, tooltip: string, onclick: () => void): HTMLButtonElement {
-    const button = document.createElement("button");
-    button.id = "action";
-    button.innerText = label;
-    button.title = tooltip;
-    button.addEventListener("click", onclick);
-    return button;
-  }
-
-  setRunControls() {
-    this.breadthFirst.disabled = false;
-    this.debug.disabled = false;
-    document.getElementById("action")!.replaceWith(this.runButton);
-  }
-
-  setStopControls() {
-    this.breadthFirst.disabled = true;
-    this.debug.disabled = true;
-    document.getElementById("action")!.replaceWith(this.stopButton);
+  setRunning(running: boolean) {
+    this.breadthFirst.disabled = running;
+    this.debug.disabled = running;
+    this.runButton.disabled = running;
+    this.stopButton.disabled = !running;
   }
 }
 

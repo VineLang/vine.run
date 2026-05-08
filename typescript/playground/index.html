@@ -35,9 +35,7 @@
     <header style="grid-area: header">
       <img class="logo" src="/img/logo.svg" draggable="false">
       <h1>Playground</h1>
-    </header>
-
-    <div id="tools" style="grid-area: tools" class="controls">
+      <div style="flex: 1"></div>
       <label class="examples">
         <select name="examples" id="examples">
           <option disabled selected value>Examples</option>
@@ -49,27 +47,19 @@
         </select>
         <span>Examples</span>
       </label>
-      <button id="share">
-        Share
-      </button>
-    </div>
+      <button id="share">Share</button>
+    </header>
 
     <div id="gap" style="grid-area: gap"></div>
 
-    <div id="actions" style="grid-area: actions" class="controls">
-      <button id="action">Run</button>
-    </div>
-
-    <div id="options" style="grid-area: options" class="controls">
-      <label>
-        <input type="checkbox" id="breadthFirst">
-        Breadth-First
-      </label>
-
-      <label>
-        <input type="checkbox" id="debug">
-        Debug
-      </label>
+    <div id="actions" style="grid-area: actions">
+      <button id="run" title="Ctrl/Cmd+Enter">Run</button>
+      <button id="stop" title="Ctrl/Cmd+\">Stop</button>
+      <div style="flex: 1"></div>
+      <input type="checkbox" id="breadthFirst">
+      <label for="breadthFirst">Breadth-First</label>
+      <input type="checkbox" id="debug">
+      <label for="debug">Debug</label>
     </div>
 
     <div id="editor" style="grid-area: editor"></div>
