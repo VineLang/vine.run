@@ -393,7 +393,7 @@ checksum = "8f42a60cbdf9a97f5d2305f08a87dc4e09308d1276d28c869c684d7777685682"
 [[package]]
 name = "ivm"
 version = "0.0.0"
-source = "git+https://github.com/VineLang/vine.git?branch=enricozb%2Fplayground-hedera#4e304d4c0a8c8b55333812fbad77c0e69c9ca36f"
+source = "git+https://github.com/VineLang/vine.git?branch=enricozb%2Fplayground-hedera#eb45a79e3e4009c1b76d47e3a154e355062c69bd"
 dependencies = [
  "ivy",
  "vine-util",
@@ -402,7 +402,7 @@ dependencies = [
 [[package]]
 name = "ivy"
 version = "0.0.0"
-source = "git+https://github.com/VineLang/vine.git?branch=enricozb%2Fplayground-hedera#4e304d4c0a8c8b55333812fbad77c0e69c9ca36f"
+source = "git+https://github.com/VineLang/vine.git?branch=enricozb%2Fplayground-hedera#eb45a79e3e4009c1b76d47e3a154e355062c69bd"
 dependencies = [
  "unicode-id-start",
  "vine-util",
@@ -1023,7 +1023,7 @@ checksum = "0b928f33d975fc6ad9f86c8f283853ad26bdd5b10b7f1542aa2fa15e2289105a"
 [[package]]
 name = "vine"
 version = "0.0.0"
-source = "git+https://github.com/VineLang/vine.git?branch=enricozb%2Fplayground-hedera#4e304d4c0a8c8b55333812fbad77c0e69c9ca36f"
+source = "git+https://github.com/VineLang/vine.git?branch=enricozb%2Fplayground-hedera#eb45a79e3e4009c1b76d47e3a154e355062c69bd"
 dependencies = [
  "class",
  "ivm",
@@ -1035,7 +1035,7 @@ dependencies = [
 [[package]]
 name = "vine-lsp"
 version = "0.0.0"
-source = "git+https://github.com/VineLang/vine.git?branch=enricozb%2Fplayground-hedera#4e304d4c0a8c8b55333812fbad77c0e69c9ca36f"
+source = "git+https://github.com/VineLang/vine.git?branch=enricozb%2Fplayground-hedera#eb45a79e3e4009c1b76d47e3a154e355062c69bd"
 dependencies = [
  "futures",
  "glob",
@@ -1048,7 +1048,7 @@ dependencies = [
 [[package]]
 name = "vine-util"
 version = "0.0.0"
-source = "git+https://github.com/VineLang/vine.git?branch=enricozb%2Fplayground-hedera#4e304d4c0a8c8b55333812fbad77c0e69c9ca36f"
+source = "git+https://github.com/VineLang/vine.git?branch=enricozb%2Fplayground-hedera#eb45a79e3e4009c1b76d47e3a154e355062c69bd"
 dependencies = [
  "hashbrown",
  "nohash-hasher",

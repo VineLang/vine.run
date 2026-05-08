@@ -1,13 +1,11 @@
 use std::time::{Duration, Instant};
 
 use ivm::{
-  host::{Host, IVM},
-  runtime::{
-    Hooks,
-    heap::Heap,
+  host::{
+    Host, IVM,
     runner::{CaptureOutput, Runner},
-    stats::Stats,
   },
+  runtime::{Hooks, heap::Heap, stats::Stats},
 };
 use ivy::{name::Table, text::parser::Parser};
 use wasm_bindgen::{JsValue, prelude::wasm_bindgen};
