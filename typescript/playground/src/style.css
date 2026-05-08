@@ -239,14 +239,14 @@ body {
 }
 
 @media
-  (max-height: 1000px) and (max-width: 350px),
-  (min-height: 1000px) and (max-width: 450px),
-  (min-aspect-ratio: 1) and (max-width: 650px)
+  ((not (max-aspect-ratio: 1)) and (
+    ((not (max-height: 600px)) and (max-width: 950px))
+    or ((max-height: 600px) and (max-width: 850px))
+  ))
+  or ((max-aspect-ratio: 1) and (max-width: 420px))
 {
-  header {
-    h1 {
-      display: none;
-    }
+  header h1 {
+    display: none;
   }
 }
 
