@@ -4,11 +4,11 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
-ivm = { git = "https://github.com/VineLang/vine.git", branch = "enricozb/playground-hedera" }
-ivy = { git = "https://github.com/VineLang/vine.git", branch = "enricozb/playground-hedera" }
-vine = { git = "https://github.com/VineLang/vine.git", branch = "enricozb/playground-hedera" }
-vine-lsp = { git = "https://github.com/VineLang/vine.git", branch = "enricozb/playground-hedera" }
-vine-util = { git = "https://github.com/VineLang/vine.git", branch = "enricozb/playground-hedera" }
+ivm = { git = "https://github.com/VineLang/vine.git", branch = "enricozb/playground" }
+ivy = { git = "https://github.com/VineLang/vine.git", branch = "enricozb/playground" }
+vine = { git = "https://github.com/VineLang/vine.git", branch = "enricozb/playground" }
+vine-lsp = { git = "https://github.com/VineLang/vine.git", branch = "enricozb/playground" }
+vine-util = { git = "https://github.com/VineLang/vine.git", branch = "enricozb/playground" }
 
 bytes = "1.11.1"
 console_error_panic_hook = "0.1.7"

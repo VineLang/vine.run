@@ -65,7 +65,7 @@ impl PlaygroundBackend {
     let lsp = self.lsp.clone();
     let hooks = PlaygroundLspHooks::new(self.checkpoint.clone(), on_compile);
     wasm_bindgen_futures::spawn_local(async move {
-      vine_lsp::lsp_stdio(lsp, hooks, input_rx, output_tx).await;
+      vine_lsp::lsp(lsp, hooks, input_rx, output_tx).await;
     });
 
     LspTransport::new(input_tx, output_rx, on_message)
