@@ -37,5 +37,5 @@ defineWorker<API>({
   },
   async format(code: string): Promise<string> {
     return backend.format(code);
-  }
+  },
 });

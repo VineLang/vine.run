@@ -121,12 +121,12 @@ export class Editor {
         to: this.view.state.doc.length,
         insert: content,
       },
-      annotations: [],
+      annotations,
     });
   }
 
-  loadExample(example: string) {
-    this.load(EXAMPLES[example as keyof typeof EXAMPLES], true);
+  loadExample(example: string, undoable: boolean) {
+    this.load(EXAMPLES[example as keyof typeof EXAMPLES], undoable);
   }
 
   loadVersionedContent(content: string) {

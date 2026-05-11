@@ -71,14 +71,16 @@ class Playground {
       this.editor.loadVersionedContent((await decodeUrlHashContent())!);
     } catch (error) {
       console.warn("Failed to load content from hash, loading hello world:", error);
-      this.editor.loadExample("hello_world");
+      this.editor.loadExample("hello_world", false);
     }
   }
 
   initExamples() {
-    this.examples.querySelectorAll("[value]").forEach(el => el.addEventListener("click", () => {
-      this.editor.loadExample(el.getAttribute("value")!);
-    }));
+    this.examples.querySelectorAll("[value]").forEach(el =>
+      el.addEventListener("click", () => {
+        this.editor.loadExample(el.getAttribute("value")!, true);
+      })
+    );
   }
 
   initEventListeners() {
@@ -117,7 +119,7 @@ class Playground {
 
     this.runButton.addEventListener("click", () => this.run());
     this.stopButton.addEventListener("click", () => this.stop());
-    console.warn(this.runButton, this.stopButton)
+    console.warn(this.runButton, this.stopButton);
 
     this.debug.addEventListener("click", async () => {
       // Force recompilation of playground file(s) with debug enabled/disabled.
