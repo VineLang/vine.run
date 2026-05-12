@@ -1,23 +1,22 @@
 import { defaultKeymap, history, historyKeymap, indentWithTab } from "@codemirror/commands";
-import { languageServerExtensions, LSPClient, type Transport } from "@codemirror/lsp-client";
+import {
+  languageServerExtensions,
+  LSPClient,
+  LSPPlugin,
+  type Transport,
+} from "@codemirror/lsp-client";
 import { searchKeymap } from "@codemirror/search";
-import { EditorState } from "@codemirror/state";
+import { EditorSelection, EditorState, Transaction } from "@codemirror/state";
 import { drawSelection, EditorView, keymap, lineNumbers, type ViewUpdate } from "@codemirror/view";
-import { Tree } from "web-tree-sitter";
 import { Syntax, syntaxExtension } from "./syntax.ts";
-import { consumeWorker } from "./workers/lib.ts";
-import { type API as Lsp } from "./workers/lsp.ts";
+import { type API as Backend } from "./workers/backend.ts";
+import { type WebWorker } from "./workers/lib.ts";
 
-function lspClient(): LSPClient {
+function lspClient(backend: WebWorker<Backend>): LSPClient {
   type Handler = (msg: string) => void;
 
-  let handlers: Handler[] = [];
-  const lsp = consumeWorker<Lsp>(
-    new Worker(new URL("./workers/lsp.ts", import.meta.url), {
-      type: "module",
-    }),
-  );
-  lsp.worker.addEventListener("message", ({ data: [tag, msg] }) => {
+  const handlers = new Set<Handler>();
+  backend.worker.addEventListener("message", ({ data: [tag, msg] }) => {
     if (tag === "lsp") {
       for (const handler of handlers) {
         handler(msg);
@@ -26,26 +25,31 @@ function lspClient(): LSPClient {
   });
   const transport: Transport = {
     send(message: string) {
-      lsp.send(message);
+      backend.sendLspMessage(message);
     },
     subscribe(handler: Handler) {
-      handlers.push(handler);
+      handlers.add(handler);
     },
     unsubscribe(handler: Handler) {
-      handlers = handlers.filter(h => h != handler);
+      handlers.delete(handler);
     },
   };
-  return new LSPClient({ extensions: languageServerExtensions() }).connect(transport);
+  return new LSPClient({
+    timeout: 60 * 1000, // ms
+    extensions: languageServerExtensions(),
+  }).connect(transport);
 }
+
+const CONTENT_VERSION = 0;
 
 export class Editor {
   view: EditorView;
   syntax?: Syntax;
-  tree: Tree | null;
+  lsp: LSPPlugin;
+  onChange: () => void;
 
-  constructor(parent: HTMLElement) {
+  constructor(parent: HTMLElement, backend: WebWorker<Backend>, onChange: () => void) {
     const state = EditorState.create({
-      // extract from: https://github.com/codemirror/basic-setup/blob/main/src/codemirror.ts
       extensions: [
         drawSelection(),
         lineNumbers(),
@@ -57,43 +61,94 @@ export class Editor {
           indentWithTab,
         ]),
         EditorState.allowMultipleSelections.of(true),
-        lspClient().plugin("file:///play.vi"),
+        lspClient(backend).plugin("file:///play.vi"),
         syntaxExtension,
         EditorView.updateListener.of(async (update: ViewUpdate) => await this.onUpdate(update)),
       ],
     });
     this.view = new EditorView({ state, parent });
-    this.tree = null;
+    this.lsp = LSPPlugin.get(this.view)!;
+    this.onChange = onChange;
   }
 
   async initialize() {
     this.syntax = await Syntax.init();
-    this.load("hello_world");
   }
 
-  files(): Record<string, string> {
-    return { play: this.view.state.doc.toString() };
+  content(): string {
+    return this.view.state.doc.toString();
+  }
+
+  versionedContent(): string {
+    const files = JSON.stringify({ play: this.view.state.doc.toString() });
+
+    return `${CONTENT_VERSION}\n${files}`;
   }
 
   async onUpdate(update: ViewUpdate) {
     if (!update.docChanged) {
       return;
     }
-
-    const { effects, tree } = this.syntax!.effects(
+    this.onChange();
+    const { effects } = this.syntax!.effects(
       update.state.doc.toString(),
     );
-    this.tree = tree;
     update.view.dispatch({ effects });
   }
 
-  load(example: string) {
+  sync() {
+    this.lsp.client.sync();
+
+    for (const file of this.lsp.client.workspace.files) {
+      this.lsp.client.notification("textDocument/didSave", {
+        textDocument: {
+          uri: file.uri,
+        },
+      });
+    }
+  }
+
+  load(content: string, undoable: boolean) {
+    const annotations = [];
+
+    if (!undoable) {
+      annotations.push(Transaction.addToHistory.of(false));
+    }
+
     this.view.dispatch({
       changes: {
         from: 0,
         to: this.view.state.doc.length,
-        insert: EXAMPLES[example as keyof typeof EXAMPLES],
+        insert: content,
       },
+      annotations: [],
+    });
+  }
+
+  loadExample(example: string) {
+    this.load(EXAMPLES[example as keyof typeof EXAMPLES], true);
+  }
+
+  loadVersionedContent(content: string) {
+    const [version, json] = content.split("\n", 2);
+    switch (Number.parseInt(version!)) {
+      case 0:
+        const files = JSON.parse(json!);
+        this.load(files.play!, false);
+        break;
+
+      default:
+        throw `invalid version: ${version}`;
+    }
+  }
+
+  getSelection(): any {
+    return this.view.state.selection.toJSON();
+  }
+
+  setSelection(selection: any) {
+    this.view.dispatch({
+      selection: EditorSelection.fromJSON(selection),
     });
   }
 }

@@ -1,6 +1,9 @@
-import { type Diag } from "./workers/compiler.ts";
+import { type Diag } from "./workers/backend.ts";
 
-export type ConsoleElements = Pick<Console, "console" | "diagnostics" | "statistics" | "output">;
+export type ConsoleElements = Pick<
+  Console,
+  "console" | "diagnostics" | "statistics" | "output"
+>;
 
 export class Console {
   console: HTMLElement;
@@ -38,14 +41,20 @@ export class Console {
     }
   }
 
-  showLoading(message: string) {
-    this.diagnostics.textContent = `${message}`;
+  clear() {
+    this.update(() => {
+      this.diagnostics.textContent = "";
+      this.statistics.textContent = "";
+      this.output.textContent = "";
+    });
   }
 
-  clear() {
-    this.diagnostics.textContent = "";
-    this.statistics.textContent = "";
-    this.output.textContent = "";
+  showDiagnosticText(content: string) {
+    this.update(() => {
+      const span = document.createElement("span");
+      span.textContent = content;
+      this.diagnostics.replaceChildren(span);
+    });
   }
 
   showDiagnostics(diag_lines: Diag[][]) {
@@ -73,6 +82,12 @@ export class Console {
           this.diagnostics.removeChild(this.diagnostics.lastChild);
         }
       }
+    });
+  }
+
+  showFlags(flags: string) {
+    this.update(() => {
+      this.statistics.prepend(flags + "\n\n");
     });
   }
 

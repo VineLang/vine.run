@@ -32,42 +32,51 @@
     <meta name="msapplication-square310x310logo" content="/img/mstile-310x310.png" />
   </head>
   <body>
-    <header>
+    <header style="grid-area: header">
       <img class="logo" src="/img/logo.svg" draggable="false">
       <h1>Playground</h1>
       <div style="flex: 1"></div>
-      <div>
-        <select name="examples" id="examples">
-          <option disabled selected value>Examples</option>
-          <option value="hello_world">hello_world.vi</option>
-          <option value="fibonacci">fibonacci.vi</option>
-          <option value="primes">primes.vi</option>
-          <option value="mandelbrot">mandelbrot.vi</option>
-          <option value="lcs">lcs.vi</option>
-        </select>
-        <label>
-          <input type="checkbox" id="breadthFirst">
-          Breadth First
-        </label>
-        <button id="action">Run</button>
-      </div>
+      <button id="format">Format</button>
+      <button id="examples" class="dropdown">
+        Examples
+        <div>
+          <span value="hello_world">hello_world.vi</span>
+          <span value="fibonacci">fibonacci.vi</span>
+          <span value="primes">primes.vi</span>
+          <span value="mandelbrot">mandelbrot.vi</span>
+          <span value="lcs">lcs.vi</span>
+        </div>
+      </button>
+      <button id="share">Share</button>
     </header>
-    <main>
-      <div id="editor"></div>
-      <div id="console">
-        <div class="container empty">
-          <h3>Diagnostics</h3>
-          <pre><code id="diagnostics"></code></pre>
-        </div>
-        <div class="container empty">
-          <h3>Output</h3>
-          <pre><code id="output"></code></pre>
-        </div>
-        <div class="container empty">
-          <h3>Statistics</h3>
-          <pre><code id="statistics"></code></pre>
-        </div>
+
+    <div id="gap" style="grid-area: gap"></div>
+
+    <div id="actions" style="grid-area: actions">
+      <button id="run" title="Ctrl/Cmd+Enter">Run</button>
+      <button id="stop" title="Ctrl/Cmd+\">Stop</button>
+      <div style="flex: 1"></div>
+      <input type="checkbox" id="breadthFirst">
+      <label for="breadthFirst">Breadth-First</label>
+      <input type="checkbox" id="debug">
+      <label for="debug">Debug</label>
+    </div>
+
+    <div id="editor" style="grid-area: editor"></div>
+
+    <div id="console" style="grid-area: console">
+      <div class="container empty">
+        <h3>Diagnostics</h3>
+        <pre><code id="diagnostics"></code></pre>
       </div>
-    </main>
+      <div class="container empty">
+        <h3>Output</h3>
+        <pre><code id="output"></code></pre>
+      </div>
+      <div class="container empty">
+        <h3>Statistics</h3>
+        <pre><code id="statistics"></code></pre>
+      </div>
+    </div>
   </body>
 </html>

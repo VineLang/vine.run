@@ -1,6 +1,8 @@
 @import "theme.css";
 @import "typsitter.css";
 
+@property --intensity { syntax: "<percentage>"; initial-value: 0%; inherits: false; }
+
 *, *::before, *::after {
   box-sizing: border-box;
 }
@@ -28,6 +30,8 @@
 
   --sans: "Atkinson Hyperlegible", sans-serif;
   --mono: "Atkinson Hyperlegible Mono", monospace;
+
+  --header-height: 4rem;
 }
 
 ::selection {
@@ -48,56 +52,206 @@ body {
   height: 100vh;
 
   color: var(--fg);
-  background-color: var(--bg);
+  background-color: var(--bg-grey);
 
   margin: 0;
   padding: 0;
 
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-areas:
+    "header gap actions"
+    "editor gap console"
+  ;
+  grid-template-rows: var(--header-height) 1fr;
+  grid-template-columns: 1fr 0.5rem 1fr;
 
   font-family: var(--sans);
+
+  &.progress {
+    cursor: progress;
+  }
+
+  header {
+    img {
+      height: 100%;
+      margin-right: .25rem;
+    }
+
+    h1 {
+      font-weight: normal;
+      font-size: 20pt;
+    }
+  }
+
+  header, #actions {
+    display: flex;
+    user-select: none;
+    align-items: center;
+    overflow: visible;
+    z-index: 1;
+
+    padding: 0 .25rem;
+
+    button, label {
+      font-size: 12pt;
+      font-family: inherit;
+      border: none;
+      border: 1px solid var(--grey);
+      background: var(--bg);
+      color: var(--fg);
+      margin: 0 .25rem;
+      padding: .25rem .75rem;
+      border-radius: 5px;
+      transition: border-color .2s, color .2s, scale .2s;
+      text-align: center;
+      scale: 1;
+      &:hover {
+        scale: 1.05;
+      }
+      &:active {
+        scale: 1;
+      }
+    }
+
+    button.dropdown {
+      div {
+        display: flex;
+        flex-direction: column;
+        position: absolute;
+        top: calc(100% + .5rem);
+        left: 0;
+        background: var(--bg);
+        border: 1px solid var(--grey);
+        border-radius: 5px;
+        font-size: 1rem;
+        text-align: left;
+        font-family: var(--mono);
+        span {
+          display: inline-block;
+          padding: .25rem .25rem;
+          transition: color .2s;
+          &:hover {
+            color: var(--theme);
+          }
+        }
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity .2s;
+      }
+      &:focus {
+        scale: 1;
+      }
+      &:focus div {
+        opacity: 1;
+        pointer-events: auto;
+      }
+    }
+
+    input {
+      display: none;
+    }
+
+    input:disabled + label, button:disabled {
+      scale: 1;
+    }
+
+    button:disabled, input + label {
+      color: var(--fg-grey);
+    }
+
+    button.on, input:checked + label {
+      border-color: var(--theme);
+      color: var(--theme);
+    }
+
+    button:not(:disabled), input:not(:disabled) + label, select {
+      cursor: pointer;
+    }
+
+    #share {
+      position: relative;
+      --intensity: 100%;
+      &.sharing, &.shared {
+        animation: pulsing 1s ease-in-out infinite;
+        color: color-mix(in srgb, var(--fg) var(--intensity), transparent);
+        border-color: color-mix(in srgb, var(--grey) var(--intensity), transparent);
+      }
+      &.shared {
+        border-color: var(--theme);
+        color: transparent;
+        &::after {
+          color: var(--theme);
+        }
+      }
+      &::after {
+        content: "Copied";
+        color: transparent;
+        transition: color .2s;
+        position: absolute;
+        left: 50%;
+        translate: -50% 0;
+      }
+    }
+  }
+
+  #gap {
+    background-color: var(--bg-grey);
+  }
+}
+
+@keyframes pulsing {
+  0%, 100% {
+    --intensity: 100%;
+  }
+
+  50% {
+    --intensity: 50%;
+  }
+}
+
+@media (max-aspect-ratio: 1) {
+  body {
+    grid-template:
+      "header" var(--header-height)
+      "editor" 1fr
+      "actions" var(--header-height)
+      "console" 1fr
+    / 1fr;
+  }
+}
+
+@media (max-height: 600px) or (max-aspect-ratio: 1) {
+  :root {
+    --header-height: 3rem;
+  }
+
+  body {
+    header {
+      h1 {
+        font-size: 14pt;
+      }
+    }
+
+    button, label {
+      font-size: 12pt;
+    }
+  }
+}
+
+@media
+  ((not (max-aspect-ratio: 1)) and (
+    ((not (max-height: 600px)) and (max-width: 950px))
+    or ((max-height: 600px) and (max-width: 850px))
+  ))
+  or ((max-aspect-ratio: 1) and (max-width: 420px))
+{
+  header h1 {
+    display: none;
+  }
 }
 
 pre, code {
   font-family: var(--mono);
-}
-
-header {
-  display: flex;
-  align-items: center;
-  user-select: none;
-
-  background-color: var(--bg-grey);
-
-  img {
-    height: 0;
-    min-height: 100%;
-    margin: 0 .46rem;
-  }
-
-  h1 {
-    margin: 1rem 0rem;
-    font-weight: normal;
-  }
-}
-
-main {
-  flex-grow: 1;
-  min-height: 0;
-
-  display: grid;
-  grid-template-rows: 1fr 1fr;
-  grid-template-columns: none;
-  gap: .5rem;
-  background-color: var(--bg-grey);
-}
-
-@media (min-aspect-ratio: 1) {
-  main {
-    grid-template-rows: none;
-    grid-template-columns: 1fr 1fr;
-  }
 }
 
 #console, #editor .cm-scroller {
@@ -229,7 +383,7 @@ main {
 
   .container {
     display: contents;
-    
+
     h3 {
       position: sticky;
       top: calc(var(--console-i) * 2.5rem);
@@ -310,8 +464,3 @@ main {
     }
   }
 }
-
-button {
-  font-family: var(--mono);
-}
-
