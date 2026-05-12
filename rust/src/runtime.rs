@@ -1,4 +1,4 @@
-use std::time::{Duration, Instant};
+use std::time::Duration;
 
 use ivm::{
   host::{
@@ -26,10 +26,11 @@ impl PlaygroundRuntime {
     breadth_first: bool,
     debug_hint: bool,
     nets: String,
+    now: &js_sys::Function,
     elapsed: &js_sys::Function,
     inspect: &js_sys::Function,
   ) -> String {
-    self._run_nets(breadth_first, debug_hint, nets, elapsed, inspect)
+    self._run_nets(breadth_first, debug_hint, nets, now, elapsed, inspect)
   }
 
   #[tracing::instrument(level = "trace", skip(self, nets, inspect), ret)]
@@ -38,6 +39,7 @@ impl PlaygroundRuntime {
     breadth_first: bool,
     debug_hint: bool,
     nets: String,
+    now: &js_sys::Function,
     elapsed: &js_sys::Function,
     inspect: &js_sys::Function,
   ) -> String {
@@ -52,7 +54,7 @@ impl PlaygroundRuntime {
       let mut host = Host::new(&mut ivm);
       let extrinsics = capture.extrinsics(&[]);
       let runner = Runner::new(&mut heap, &mut host, extrinsics, table, &nets);
-      let hooks = PlaygroundRuntimeHooks { capture: &capture, elapsed, inspect, interactions: 0 };
+      let hooks = PlaygroundRuntimeHooks::new(&capture, now, elapsed, inspect);
 
       runner.normalize(breadth_first, 0, hooks)
     };
@@ -77,17 +79,31 @@ const INTERACTIONS_TICK: u64 = 123_456;
 
 struct PlaygroundRuntimeHooks<'a> {
   capture: &'a CaptureOutput,
+  now: &'a js_sys::Function,
   elapsed: &'a js_sys::Function,
   inspect: &'a js_sys::Function,
   interactions: u64,
 }
 
+impl<'a> PlaygroundRuntimeHooks<'a> {
+  fn new(
+    capture: &'a CaptureOutput,
+    now: &'a js_sys::Function,
+    elapsed: &'a js_sys::Function,
+    inspect: &'a js_sys::Function,
+  ) -> Self {
+    Self { capture, now, elapsed, inspect, interactions: 0 }
+  }
+}
+
 impl Hooks for PlaygroundRuntimeHooks<'_> {
-  fn start(&mut self) -> Option<Instant> {
-    None
+  type Instant = JsValue;
+
+  fn now(&mut self) -> Self::Instant {
+    self.now.call0(&JsValue::NULL).unwrap()
   }
 
-  fn tick(&mut self, stats: &mut Stats) {
+  fn tick(&mut self, start: &Self::Instant, stats: &mut Stats) {
     let interactions = stats.interactions();
     if interactions - self.interactions < INTERACTIONS_TICK {
       return;
@@ -95,7 +111,7 @@ impl Hooks for PlaygroundRuntimeHooks<'_> {
 
     self.interactions = interactions;
 
-    let elapsed = self.elapsed.call0(&JsValue::NULL).unwrap();
+    let elapsed = self.elapsed.call1(&JsValue::NULL, start).unwrap();
     let elapsed = serde_wasm_bindgen::from_value(elapsed).unwrap();
     stats.time_clock = Duration::from_millis(elapsed);
 
@@ -110,5 +126,9 @@ impl Hooks for PlaygroundRuntimeHooks<'_> {
         &serde_wasm_bindgen::to_value(&output).unwrap(),
       )
       .unwrap();
+  }
+
+  fn end(&mut self, start: &Self::Instant, stats: &mut Stats) {
+    self.tick(start, stats);
   }
 }

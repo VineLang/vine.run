@@ -387,7 +387,7 @@ checksum = "8f42a60cbdf9a97f5d2305f08a87dc4e09308d1276d28c869c684d7777685682"
 [[package]]
 name = "ivm"
 version = "0.0.0"
-source = "git+https://github.com/VineLang/vine.git?branch=enricozb%2Fplayground#e90c8ed0fcac5414b9b9ae281bd441ec40c5ded1"
+source = "git+https://github.com/VineLang/vine.git?branch=enricozb%2Fplayground#3450c237e0d8f6eaa5c88d27824372e609b8e725"
 dependencies = [
  "ivy",
  "vine-util",
@@ -396,7 +396,7 @@ dependencies = [
 [[package]]
 name = "ivy"
 version = "0.0.0"
-source = "git+https://github.com/VineLang/vine.git?branch=enricozb%2Fplayground#e90c8ed0fcac5414b9b9ae281bd441ec40c5ded1"
+source = "git+https://github.com/VineLang/vine.git?branch=enricozb%2Fplayground#3450c237e0d8f6eaa5c88d27824372e609b8e725"
 dependencies = [
  "unicode-id-start",
  "vine-util",
@@ -1017,7 +1017,7 @@ checksum = "0b928f33d975fc6ad9f86c8f283853ad26bdd5b10b7f1542aa2fa15e2289105a"
 [[package]]
 name = "vine"
 version = "0.0.0"
-source = "git+https://github.com/VineLang/vine.git?branch=enricozb%2Fplayground#e90c8ed0fcac5414b9b9ae281bd441ec40c5ded1"
+source = "git+https://github.com/VineLang/vine.git?branch=enricozb%2Fplayground#3450c237e0d8f6eaa5c88d27824372e609b8e725"
 dependencies = [
  "class",
  "ivm",
@@ -1029,7 +1029,7 @@ dependencies = [
 [[package]]
 name = "vine-lsp"
 version = "0.0.0"
-source = "git+https://github.com/VineLang/vine.git?branch=enricozb%2Fplayground#e90c8ed0fcac5414b9b9ae281bd441ec40c5ded1"
+source = "git+https://github.com/VineLang/vine.git?branch=enricozb%2Fplayground#3450c237e0d8f6eaa5c88d27824372e609b8e725"
 dependencies = [
  "futures",
  "tokio",
@@ -1041,7 +1041,7 @@ dependencies = [
 [[package]]
 name = "vine-util"
 version = "0.0.0"
-source = "git+https://github.com/VineLang/vine.git?branch=enricozb%2Fplayground#e90c8ed0fcac5414b9b9ae281bd441ec40c5ded1"
+source = "git+https://github.com/VineLang/vine.git?branch=enricozb%2Fplayground#3450c237e0d8f6eaa5c88d27824372e609b8e725"
 dependencies = [
  "hashbrown",
  "nohash-hasher",
