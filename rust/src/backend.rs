@@ -139,6 +139,11 @@ impl Hooks for PlaygroundLspHooks {
     file_paths: &mut IdxVec<FileId, PathBuf>,
     docs: &HashMap<Url, Doc>,
   ) {
+    // NOTE: before `Editor` sends `didOpen` for `play`, it won't be in `docs`.
+    if docs.is_empty() {
+      return;
+    }
+
     let mut loader = Loader::new(compiler, PlaygroundMainFS::new(docs), Some(file_paths));
     loader.load_main_mod(Ident("play".to_owned()), "/play.vi".into());
   }
