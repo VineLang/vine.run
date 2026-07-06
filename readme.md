@@ -1,5 +1,9 @@
 # Vine Web Playground
 
+Source for the [Vine Playground](https://vine.run).
+
+## Running Locally
+
 ```
-nix run .#serve
+nix develop --command serve
 ```
